@@ -1,0 +1,3 @@
+db : postgresql
+ssma db url: https://qvgnfmqoyiezqyfiwycd.supabase.co
+api_key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF2Z25mbXFveWllenF5Zml3eWNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg2ODA5NTYsImV4cCI6MjA3NDI1Njk1Nn0.qoRsrm9-ytXB7h5SIFTcBEP8xauwQLjeM2NeSalvyBY
