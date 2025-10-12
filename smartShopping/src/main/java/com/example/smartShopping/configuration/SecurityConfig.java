@@ -1,15 +1,25 @@
 package com.example.smartShopping.configuration;
 
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+
+import com.example.smartShopping.repository.InvalidTokenRepository;
+
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.config.http.SessionCreationPolicy;
 @Configuration
 @Slf4j
 public class SecurityConfig {
+
+    @Value("${jwt.secret}")
+    private String jwtSecret;
+
     @Bean
     public org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter jwtAuthenticationConverter() {
         var converter = new org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter();
@@ -24,6 +34,12 @@ public class SecurityConfig {
         });
         return converter;
     }
+
+    @Bean
+    public JwtDecoder jwtDecoder(InvalidTokenRepository invalidTokenRepository) {
+        return new CustomJwtDecoder(jwtSecret, invalidTokenRepository);
+    }
+    
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
