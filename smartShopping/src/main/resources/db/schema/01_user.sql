@@ -15,24 +15,16 @@ CREATE TABLE users (
                        is_admin BOOLEAN DEFAULT FALSE,
                        created_at TIMESTAMP DEFAULT now(),
                        updated_at TIMESTAMP DEFAULT now(),
-                       last_login TIMESTAMP
-);
+                       last_login TIMESTAMP,
 
-CREATE TABLE verification_codes (
-                                    code_id SERIAL PRIMARY KEY,
-                                    user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
-                                    code VARCHAR(10) NOT NULL,
-                                    token VARCHAR(500) NOT NULL,
-                                    expires_at TIMESTAMP NOT NULL,
-                                    is_used BOOLEAN DEFAULT FALSE,
-                                    created_at TIMESTAMP DEFAULT now()
-);
+    -- verification
+                       verification_code VARCHAR(10),
+                       verification_token VARCHAR(500),
+                       verification_expires_at TIMESTAMP,
+                       verification_used BOOLEAN DEFAULT FALSE,
 
-CREATE TABLE refresh_tokens (
-                                token_id SERIAL PRIMARY KEY,
-                                user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
-                                refresh_token VARCHAR(500) UNIQUE NOT NULL,
-                                expires_at TIMESTAMP NOT NULL,
-                                is_revoked BOOLEAN DEFAULT FALSE,
-                                created_at TIMESTAMP DEFAULT now()
+    -- refresh token
+                       refresh_token VARCHAR(500),
+                       refresh_expires_at TIMESTAMP,
+                       refresh_revoked BOOLEAN DEFAULT FALSE
 );
