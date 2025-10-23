@@ -1,62 +1,45 @@
 package com.example.smartShopping.configuration;
 
-import lombok.extern.slf4j.Slf4j;
-
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.web.SecurityFilterChain;
-
-import com.example.smartShopping.repository.InvalidTokenRepository;
-
-import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
 @Configuration
-@Slf4j
 public class SecurityConfig {
 
-    @Value("${jwt.secret}")
-    private String jwtSecret;
-
     @Bean
-    public org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter jwtAuthenticationConverter() {
-        var converter = new org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter();
-        converter.setJwtGrantedAuthoritiesConverter(jwt -> {
-            String scope = jwt.getClaimAsString("scope");
-            if (scope == null) return java.util.Collections.emptyList();
-            java.util.List<org.springframework.security.core.GrantedAuthority> authorities = new java.util.ArrayList<>();
-            for (String role : scope.split(" ")) {
-                authorities.add(new org.springframework.security.core.authority.SimpleGrantedAuthority("" + role));
-            }
-            return authorities;
-        });
-        return converter;
-    }
-
-    @Bean
-    public JwtDecoder jwtDecoder(InvalidTokenRepository invalidTokenRepository) {
-        return new CustomJwtDecoder(jwtSecret, invalidTokenRepository);
-    }
-    
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                   JwtAuthenticationFilter jwtFilter) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.POST, "/users", "/auth/login", "/auth/introspect","/users/*").permitAll()
-                        .requestMatchers(HttpMethod.PUT, "/auth/login","/users","/users/*").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/auth/login","/users").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/public/**").permitAll()
+                        .requestMatchers("/api/user/**").permitAll()
+                        .requestMatchers("/user/logout/**").permitAll() // Cho phép logout không cần auth
                         .anyRequest().authenticated()
                 )
-                .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(new JwtAuthenticationEntryPoint())
-                )
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {
-                    jwt.jwtAuthenticationConverter(jwtAuthenticationConverter());
-                }));
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
     }
 }
