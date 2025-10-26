@@ -9,6 +9,7 @@ import com.example.smartShopping.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -47,6 +48,22 @@ public class UserService {
         userRepo.save(user);
 
         return "Cập nhật thông tin thành công";
+    }
+
+    public String uploadAvatar(String email, MultipartFile file) {
+        // TODO: Upload file to Cloudinary / Firebase / server
+        // Trả về URL ảnh vừa upload
+        return "https://example.com/image.png";
+    }
+
+    public void updateUserProfile(String email, String username, String avatarUrl) {
+        User user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản"));
+
+        if (username != null) user.setName(username);
+        if (avatarUrl != null) user.setAvatarUrl(avatarUrl);
+
+        userRepo.save(user);
     }
 
     // ------------------- XÁC THỰC EMAIL -------------------
@@ -90,4 +107,23 @@ public class UserService {
     public void sendVerificationCode(VerifyEmailRequest req) {
 
     }
+    public void saveUserNotificationToken(String email, String token) {
+        User user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản"));
+
+        user.setNotificationToken(token);
+        userRepo.save(user);
+    }
+    public Long getUserIdByEmail(String email) {
+        var user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+        return user.getUserId();
+    }
+
+    public Long getUserIdByUsername(String username) {
+        return userRepo.findByUsername(username)  // Optional<User>
+                .orElseThrow(() -> new RuntimeException("User not found: " + username))
+                .getUserId();
+    }
+
 }
