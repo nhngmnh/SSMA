@@ -1,0 +1,17 @@
+package com.example.smartShopping.dto.request;
+
+import lombok.Data;
+
+@Data
+public class RegisterRequest {
+    private String email;
+    private String password;
+    private String name;
+    private String language;
+    private int timezone;
+    private String deviceId;
+
+    public String getUsername() {
+        return "";
+    }
+}
