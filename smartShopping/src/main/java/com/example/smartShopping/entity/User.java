@@ -36,7 +36,7 @@ public class User {
     private String deviceId;
     private String profileImageUrl;
     private Boolean isVerified = false;
-    private Boolean isActive = true;
+    private Boolean isActive = false;
     private Boolean isAdmin = false;
     private LocalDateTime createdAt = LocalDateTime.now();
     private LocalDateTime updatedAt = LocalDateTime.now();

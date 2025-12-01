@@ -25,7 +25,14 @@ public class FoodServiceImpl implements FoodService {
     @Override
     public FoodResponse createFood(FoodRequest req, Long userId) {
 
-        String imageUrl = imageStorageService.uploadImage(req.getImage(), userId);
+        String imageUrl;
+        if (req.getImage() != null && !req.getImage().isEmpty()) {
+            imageUrl = imageStorageService.uploadImage(req.getImage(), userId);
+        } else if (req.getImageUrl() != null && !req.getImageUrl().isBlank()) {
+            imageUrl = req.getImageUrl();
+        } else {
+            throw new RuntimeException("Phải cung cấp image (file) hoặc imageUrl đã được upload trước");
+        }
 
         Food food = Food.builder()
                 .name(req.getName())

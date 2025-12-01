@@ -36,18 +36,18 @@ public class UserController {
     private final JwtTokenProvider jwtTokenProvider;
 
     // ===================== REGISTER =====================
-    @PostMapping("/")
+    @PostMapping()
     public ResponseEntity<ApiResponse<RegisterResponse>> register(@RequestBody RegisterRequest req) {
         System.out.println("=====> Register request received: " + req.getEmail());
 
-        RegisterResponse response = authService.register(req); // ✅ trả về RegisterResponse
+        RegisterResponse response = authService.register(req);
 
         return ResponseEntity.ok(
                 ApiResponse.<RegisterResponse>builder()
                         .success(true)
                         .code(201)
                         .message("User registered successfully")
-                        .data(response) // ✅ truyền đúng kiểu
+                        .data(response)
                         .build()
         );
     }

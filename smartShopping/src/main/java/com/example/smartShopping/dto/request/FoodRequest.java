@@ -12,3 +12,4 @@ public class FoodRequest {
     private String unitName;
     private MultipartFile image;
 }
+
