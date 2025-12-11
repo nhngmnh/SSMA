@@ -1,5 +1,6 @@
 package com.example.smartShopping.configuration;
 
+import com.example.smartShopping.service.impl.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,6 +21,7 @@ import java.util.Collections;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtProvider;
+    private final CustomUserDetailsService userDetailsService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -41,12 +43,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String email = jwtProvider.getEmailFromToken(token);
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(
-                            new User(email, "", Collections.emptyList()),
-                            null,
-                            Collections.emptyList()
-                    );
+            var userDetails = userDetailsService.loadUserByUsername(email);
+            var authentication = new UsernamePasswordAuthenticationToken(
+                    userDetails,
+                    null,
+                    userDetails.getAuthorities()
+            );
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }

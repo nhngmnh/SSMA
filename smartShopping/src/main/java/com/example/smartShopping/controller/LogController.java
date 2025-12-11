@@ -18,4 +18,5 @@ public class LogController {
         ApiResponse response = logService.getAllLogs();
         return ResponseEntity.ok(response);
     }
+
 }

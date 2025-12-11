@@ -102,7 +102,9 @@ public class AuthService {
     }
 
     public String generateAccessTokenFromEmail(String email) {
-        return jwtProvider.generateAccessToken(email);
+        User user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy email"));
+        return jwtProvider.generateAccessToken(user.getId(),email);
     }
 
     public String generateRefreshTokenFromEmail(String email) {
@@ -150,7 +152,7 @@ public class AuthService {
         if (!encoder.matches(req.getPassword(), user.getPasswordHash()))
             throw new RuntimeException("Sai mật khẩu");
 
-        String accessToken = jwtProvider.generateAccessToken(user.getEmail());
+        String accessToken = jwtProvider.generateAccessToken(user.getId(),user.getEmail());
         String refreshToken = jwtProvider.generateRefreshToken(user.getEmail());
 
         user.setRefreshToken(refreshToken);
@@ -174,4 +176,28 @@ public class AuthService {
         tokens.put("refreshToken", "newRefreshTokenHere");
         return tokens;
     }
+
+    public User validateLogin(LoginRequest request) {
+        // 1️⃣ Lấy user từ database theo email
+        User user = userRepo.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Email không tồn tại"));
+
+        // 2️⃣ Kiểm tra mật khẩu
+        if (!encoder.matches(request.getPassword(), user.getPasswordHash())) {
+            throw new RuntimeException("Mật khẩu không đúng");
+        }
+
+        // 3️⃣ Kiểm tra user còn active không
+        if (!user.getIsActive()) {
+            throw new RuntimeException("Tài khoản bị khóa");
+        }
+
+        // 4️⃣ Cập nhật lastLogin (nếu muốn)
+        user.setLastLogin(LocalDateTime.now());
+        userRepo.save(user);
+
+        // 5️⃣ Trả về user để tạo token
+        return user;
+    }
+
 }

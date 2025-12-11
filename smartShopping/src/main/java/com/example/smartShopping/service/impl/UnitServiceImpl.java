@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -137,4 +138,33 @@ public class UnitServiceImpl implements UnitService {
                 .data(null)
                 .build();
     }
+
+    @Override
+    public ApiResponse getAllUnitsFood(String unitName) {
+        List<UnitResponse.UnitDto> unitDtos = unitRepository.findAll()
+                .stream()
+                .filter(u -> unitName == null || u.getUnitName().contains(unitName))
+                .map(unit -> UnitResponse.UnitDto.builder()
+                        .id(unit.getId())
+                        .unitName(unit.getUnitName())
+                        .createdAt(unit.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                        .updatedAt(unit.getUpdatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                        .build())
+                .collect(Collectors.toList());
+
+        UnitResponse data = UnitResponse.builder()
+                .resultCode("00110")
+                .resultMessage(new UnitResponse.ResultMessage(
+                        "Successfully retrieved units", "Lấy các unit thành công"
+                ))
+                .units(unitDtos)
+                .build();
+
+        return ApiResponse.builder()
+                .success(true)
+                .message("Lấy danh sách unit thành công")
+                .data(data)
+                .build();
+    }
+
 }

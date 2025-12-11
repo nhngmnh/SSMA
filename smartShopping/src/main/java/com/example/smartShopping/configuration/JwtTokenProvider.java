@@ -16,17 +16,26 @@ public class JwtTokenProvider {
     @Value("${jwt.refresh-expiration}")
     private Long refreshExpiration;
 
+//    public Long getUserIdFromToken(String token) {
+//        Claims claims = Jwts.parser()
+//                .setSigningKey(jwtSecret)
+//                .parseClaimsJws(token)
+//                .getBody();
+//        return claims.get("userId", Long.class);
+//    }
 
-    public String generateAccessToken(String email) {
-        System.out.println("=== [DEBUG] jwtSecret = " + jwtSecret);
-        System.out.println("=== [DEBUG] jwtExpiration = " + jwtExpiration);
+
+    public String generateAccessToken(Long userId, String email) {
         return Jwts.builder()
-                .setSubject(email)
+                .setSubject(email)             // lưu email
+                .claim("userId", userId)       // lưu userId
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
                 .signWith(SignatureAlgorithm.HS512, jwtSecret)
                 .compact();
     }
+
+
 
     public String generateRefreshToken(String email) {
         return Jwts.builder()

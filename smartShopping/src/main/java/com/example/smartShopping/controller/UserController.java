@@ -134,15 +134,29 @@ public class UserController {
         }
     }
 
-    // ===================== LOGIN =====================
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
-        System.out.println("===> Login request: " + request.getEmail());
-        LoginResponse response = authService.login(request);
-        System.out.println("===> Login done, returning response");
+
+        // Validate login
+        User user = authService.validateLogin(request);
+
+        // Generate access + refresh token
+        String accessToken = jwtTokenProvider.generateAccessToken(user.getId(), user.getEmail());
+        String refreshToken = jwtTokenProvider.generateRefreshToken(user.getEmail());
+
+        // Build response trả FE
+        LoginResponse response = LoginResponse.builder()
+                .resultCode("00047")
+                .resultMessage(new ResultMessage("You logged in successfully.", "Bạn đã đăng nhập thành công."))
+                .user(user)
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
 
         return ResponseEntity.ok(response);
     }
+
+
 
 
     // ===================== LOGOUT =====================
@@ -163,8 +177,9 @@ public class UserController {
     public ResponseEntity<ApiResponse<?>> refreshToken(@RequestBody RefreshTokenRequest req) {
         try {
             String email = jwtTokenProvider.getEmailFromToken(req.getRefreshToken());
-
-            String accessToken = jwtTokenProvider.generateAccessToken(email);
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            String accessToken = jwtTokenProvider.generateAccessToken(user.getId(),email);
             String refreshToken = jwtTokenProvider.generateRefreshToken(email);
 
             Map<String, String> messages = new HashMap<>();

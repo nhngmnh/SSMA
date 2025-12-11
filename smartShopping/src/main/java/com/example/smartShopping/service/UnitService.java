@@ -8,4 +8,5 @@ public interface UnitService {
     ApiResponse getAllUnits(String unitName); // unitName có thể null
     ApiResponse updateUnitName(String oldName, String newName);
     ApiResponse deleteUnitByName(String unitName);
+    ApiResponse getAllUnitsFood(String unitName);
 }

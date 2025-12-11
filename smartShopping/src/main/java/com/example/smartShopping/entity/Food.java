@@ -21,7 +21,7 @@ public class Food {
 
     private Long FoodCategoryId;
 
-    private Long UserId;
+    private Long userId;
 
     private String imageUrl;
 

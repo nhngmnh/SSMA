@@ -3,6 +3,8 @@ package com.example.smartShopping.dto.response;
 
 import lombok.*;
 
+import java.util.List;
+
 @Getter @Setter
 @AllArgsConstructor @NoArgsConstructor @Builder
 public class FoodResponse {
@@ -10,6 +12,8 @@ public class FoodResponse {
     private ResultMessage resultMessage;
     private String resultCode;
     private NewFood newFood;
+
+    private List<NewFood> foods; // thêm dòng này cho GET all
 
     @Getter @Setter
     @AllArgsConstructor @NoArgsConstructor @Builder
@@ -31,4 +35,5 @@ public class FoodResponse {
         private String createdAt;
         private String updatedAt;
     }
+
 }

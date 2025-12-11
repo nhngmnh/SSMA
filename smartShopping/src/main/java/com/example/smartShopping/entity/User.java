@@ -62,11 +62,19 @@ public class User {
     public void preUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+    public Long getId() {
+        return userId;
+    }
+
 
     public void setNotificationToken(String token) {
         this.notificationToken = token;
     }
 
+
+    public String getPassHash() {
+        return passwordHash;
+    }
 
 
 }

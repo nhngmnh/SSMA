@@ -2,13 +2,16 @@ package com.example.smartShopping.service.impl;
 
 import com.example.smartShopping.dto.request.CategoryRequest;
 import com.example.smartShopping.dto.response.ApiResponse;
+import com.example.smartShopping.dto.response.CategoryResponse;
 import com.example.smartShopping.entity.Category;
 import com.example.smartShopping.repository.CategoryRepository;
 import com.example.smartShopping.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -107,6 +110,26 @@ public class CategoryServiceImpl implements CategoryService {
                 .code(146)
                 .message("Xóa category thành công")
                 .data(null)
+                .build();
+    }
+    @Override
+    public CategoryResponse getAllCategoriesFood() {
+        List<CategoryResponse.CategoryDto> categoryDtos = categoryRepository.findAll()
+                .stream()
+                .map(c -> CategoryResponse.CategoryDto.builder()
+                        .id(c.getId())
+                        .name(c.getName())
+                        .createdAt(c.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                        .updatedAt(c.getUpdatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                        .build())
+                .collect(Collectors.toList());
+
+        return CategoryResponse.builder()
+                .resultCode("00129")
+                .resultMessage(new CategoryResponse.ResultMessage(
+                        "Successfully retrieved categories", "Lấy các category thành công"
+                ))
+                .categories(categoryDtos)
                 .build();
     }
 }
