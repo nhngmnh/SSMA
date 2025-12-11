@@ -35,6 +35,7 @@ public class AuthService {
                 .verificationCode(String.valueOf(100000 + new Random().nextInt(900000)))
                 .verificationExpiresAt(LocalDateTime.now().plusMinutes(10))
                 .isVerified(false)
+                .isActive(false)
                 .build();
 
         userRepo.save(user);
@@ -69,7 +70,27 @@ public class AuthService {
                 .getBody();
 
         String tokenCode = claims.get("code", String.class);
-        return tokenCode.equals(code); // trả về true nếu code đúng
+        String email = claims.getSubject();
+        if (tokenCode == null || !tokenCode.equals(code)) {
+            return false;
+        }
+
+        // 2. Cập nhật trạng thái người dùng
+        User user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản"));
+
+        // Optional: kiểm tra hạn mã xác thực nếu đã lưu
+        if (user.getVerificationExpiresAt() != null && user.getVerificationExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Mã xác thực đã hết hạn");
+        }
+
+        user.setIsVerified(true);
+        user.setIsActive(true);
+        user.setVerificationUsed(true);
+        user.setVerificationToken(token);
+        userRepo.save(user);
+
+        return true;
     }
 
     public String getEmailFromToken(String token) {

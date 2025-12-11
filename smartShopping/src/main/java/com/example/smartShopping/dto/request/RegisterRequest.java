@@ -10,8 +10,5 @@ public class RegisterRequest {
     private String language;
     private int timezone;
     private String deviceId;
-
-    public String getUsername() {
-        return "";
-    }
+    private String username;
 }
