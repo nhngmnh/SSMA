@@ -1,7 +1,9 @@
 package com.example.smartShopping.dto.response;
 
+import com.example.smartShopping.entity.Unit;
 import lombok.*;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Getter @Setter
@@ -37,4 +39,23 @@ public class UnitResponse {
         private String en;
         private String vn;
     }
+    public static UnitResponse fromEntity(Unit unit) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+        return UnitResponse.builder()
+                .id(unit.getId())
+                .unitName(unit.getUnitName())
+                .createdAt(unit.getCreatedAt().format(formatter))
+                .updatedAt(unit.getUpdatedAt().format(formatter))
+                .build();
+    }
+    public static UnitDto toDto(Unit unit) {
+        return UnitDto.builder()
+                .id(unit.getId())
+                .unitName(unit.getUnitName())
+                .createdAt(unit.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .updatedAt(unit.getUpdatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .build();
+    }
+
 }

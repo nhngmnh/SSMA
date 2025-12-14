@@ -1,5 +1,6 @@
 package com.example.smartShopping.dto.response;
 
+import com.example.smartShopping.entity.User;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -26,5 +27,7 @@ public class UserResponse {
     int belongsToGroupAdminId;
     String createdAt;
     String updatedAt;
+
+
 }
 

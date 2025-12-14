@@ -35,7 +35,8 @@ public class AuthService {
                 .verificationCode(String.valueOf(100000 + new Random().nextInt(900000)))
                 .verificationExpiresAt(LocalDateTime.now().plusMinutes(10))
                 .isVerified(false)
-                .isActive(false)
+                .isAdmin(false)
+                .isActive(true)
                 .build();
 
         userRepo.save(user);
@@ -50,6 +51,7 @@ public class AuthService {
                 .confirmToken(confirmToken)
                 .build();
     }
+
     public String sendVerificationCode(String email) {
         // 1. Sinh mã xác thực (ví dụ 6 chữ số)
         String code = String.valueOf(new Random().nextInt(900000) + 100000);

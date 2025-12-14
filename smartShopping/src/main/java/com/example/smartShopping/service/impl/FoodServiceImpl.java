@@ -47,8 +47,8 @@ public class FoodServiceImpl implements FoodService {
 
         Food food = Food.builder()
                 .name(req.getName())
-                .FoodCategoryId( mapCategory(req.getFoodCategoryName()) )
-                .UnitOfMeasurementId( mapUnit(req.getUnitName()) )
+                .foodCategoryId( mapCategory(req.getFoodCategoryName()) )
+                .unitOfMeasurementId( mapUnit(req.getUnitName()) )
                 .userId(userId)
                 .type("ingredient")
                 .imageUrl(imageUrl)
