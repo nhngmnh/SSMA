@@ -12,6 +12,7 @@ import com.example.smartShopping.service.GroupService;
 
 import com.example.smartShopping.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/user")
 @RequiredArgsConstructor
@@ -36,20 +38,11 @@ public class UserController {
     private final JwtTokenProvider jwtTokenProvider;
 
     // ===================== REGISTER =====================
-    @PostMapping()
-    public ResponseEntity<ApiResponse<RegisterResponse>> register(@RequestBody RegisterRequest req) {
-        System.out.println("=====> Register request received: " + req.getEmail());
-
+    @PostMapping(consumes = {"application/json", "application/x-www-form-urlencoded"})
+    public ResponseEntity<RegisterResponse> register(@RequestBody RegisterRequest req) {
+        log.info("Received request to register user: {}", req);
         RegisterResponse response = authService.register(req);
-
-        return ResponseEntity.ok(
-                ApiResponse.<RegisterResponse>builder()
-                        .success(true)
-                        .code(201)
-                        .message("User registered successfully")
-                        .data(response)
-                        .build()
-        );
+        return ResponseEntity.ok(response);
     }
     // ===================== GET INFOR USER =====================
     @GetMapping("/")
@@ -161,20 +154,14 @@ public class UserController {
 
     // ===================== LOGOUT =====================
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<?>> logout() {
+    public ResponseEntity<Void> logout() {
         authService.logout();
-        return ResponseEntity.ok(
-                ApiResponse.builder()
-                        .success(true)
-                        .code(200)
-                        .message("Logout successful")
-                        .build()
-        );
+        return ResponseEntity.ok().build();
     }
 
     // ===================== REFRESH TOKEN =====================
     @PostMapping("/refresh-token")
-    public ResponseEntity<ApiResponse<?>> refreshToken(@RequestBody RefreshTokenRequest req) {
+    public ResponseEntity<RefreshTokenResponse> refreshToken(@RequestBody RefreshTokenRequest req) {
         try {
             String email = jwtTokenProvider.getEmailFromToken(req.getRefreshToken());
             User user = userRepository.findByEmail(email)
@@ -188,23 +175,14 @@ public class UserController {
 
             RefreshTokenResponse newTokens = new RefreshTokenResponse(messages, "00065", accessToken, refreshToken);
 
-            return ResponseEntity.ok(
-                    ApiResponse.builder()
-                            .success(true)
-                            .code(200)
-                            .message("Token refreshed")
-                            .data(newTokens)
-                            .build()
-            );
+            return ResponseEntity.ok(newTokens);
         } catch (Exception e) {
-            e.printStackTrace(); // xem lỗi thực sự
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    ApiResponse.builder()
-                            .success(false)
-                            .code(1999)
-                            .message("Lỗi hệ thống")
-                            .build()
-            );
+            e.printStackTrace();
+            Map<String, String> errorMsg = new HashMap<>();
+            errorMsg.put("en", "System error");
+            errorMsg.put("vn", "Lỗi hệ thống");
+            RefreshTokenResponse error = new RefreshTokenResponse(errorMsg, "1999", null, null);
+            return ResponseEntity.status(500).body(error);
         }
     }
 
@@ -213,7 +191,7 @@ public class UserController {
 
     // ===================== SEND VERIFICATION CODE =====================
     @PostMapping("/send-verification-code")
-    public ResponseEntity<ApiResponse<?>> sendCode(@RequestParam("email") String email) {
+    public ResponseEntity<Map<String, Object>> sendCode(@RequestParam("email") String email) {
         Map<String, String> messages = Map.of(
                 "en", "The code is sent to your email successfully.",
                 "vn", "Mã đã được gửi đến email của bạn thành công."
@@ -227,14 +205,7 @@ public class UserController {
                 "confirmToken", confirmToken
         );
 
-        return ResponseEntity.ok(
-                ApiResponse.builder()
-                        .success(true)
-                        .code(200)
-                        .message("Code sent")
-                        .data(data)
-                        .build()
-        );
+        return ResponseEntity.ok(data);
     }
 
     // ===================== VERIFY EMAIL =====================

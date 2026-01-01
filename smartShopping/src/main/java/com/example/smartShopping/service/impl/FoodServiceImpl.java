@@ -36,13 +36,9 @@ public class FoodServiceImpl implements FoodService {
     @Override
     public FoodResponse createFood(FoodRequest req, Long userId) {
 
-        String imageUrl;
-        if (req.getImage() != null && !req.getImage().isEmpty()) {
-            imageUrl = imageStorageService.uploadImage(req.getImage(), userId);
-        } else if (req.getImageUrl() != null && !req.getImageUrl().isBlank()) {
+        String imageUrl = null;
+        if (req.getImageUrl() != null && !req.getImageUrl().isBlank()) {
             imageUrl = req.getImageUrl();
-        } else {
-            throw new RuntimeException("Phải cung cấp image (file) hoặc imageUrl đã được upload trước");
         }
 
         Food food = Food.builder()
@@ -80,17 +76,17 @@ public class FoodServiceImpl implements FoodService {
     }
 
     private Long mapCategory(String name) {
-        if (name == null || name.isBlank()) return 2L; // default id
+        if (name == null || name.isBlank()) return null;
         return categoryRepository.findByName(name)
                 .map(Category::getId)
-                .orElseThrow(() -> new RuntimeException("Category not found: " + name));
+                .orElse(null);
     }
 
     private Long mapUnit(String name) {
-        if (name == null || name.isBlank()) return 2L; // default id
+        if (name == null || name.isBlank()) return null;
         return unitRepository.findByUnitName(name)
                 .map(Unit::getId)
-                .orElseThrow(() -> new RuntimeException("Unit not found: " + name));
+                .orElse(null);
     }
 
 
@@ -112,13 +108,7 @@ public class FoodServiceImpl implements FoodService {
             food.setUnitOfMeasurementId(mapUnit(req.getNewUnit()));
         }
 
-        // Update image bằng file
-        if (req.getImage() != null && !req.getImage().isEmpty()) {
-            String newImageUrl = imageStorageService.uploadImage(req.getImage(), userId);
-            food.setImageUrl(newImageUrl);
-        }
-
-        // Update image bằng URL (ưu tiên nếu người dùng gửi link)
+        // Update image bằng URL
         if (req.getImageUrl() != null && !req.getImageUrl().isBlank()) {
             food.setImageUrl(req.getImageUrl());
         }

@@ -12,7 +12,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin/category")
@@ -23,37 +25,76 @@ public class CategoryController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public ResponseEntity<ApiResponse> createCategory(@RequestParam("name") String name) {
-        CategoryRequest request = new CategoryRequest();
-        request.setName(name);  // gán name từ requestParam
-        ApiResponse response = categoryService.createCategory(request);
-        return ResponseEntity.ok(response);
+    public Object createCategory(@RequestParam("name") String name) {
+        try {
+            CategoryRequest request = new CategoryRequest();
+            request.setName(name);
+            ApiResponse response = categoryService.createCategory(request);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new LinkedHashMap<>();
+            Map<String, String> resultMessage = new LinkedHashMap<>();
+            resultMessage.put("en", "System error: " + e.getMessage());
+            resultMessage.put("vn", "Lỗi hệ thống: " + e.getMessage());
+            errorResponse.put("resultMessage", resultMessage);
+            errorResponse.put("resultCode", "1999");
+            return ResponseEntity.status(500).body(errorResponse);
+        }
     }
 
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public ResponseEntity<ApiResponse<List<Category>>> getAllCategories() {
-        return ResponseEntity.ok(categoryService.getAllCategories());
+    public Object getAllCategories() {
+        try {
+            return ResponseEntity.ok(categoryService.getAllCategories());
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new LinkedHashMap<>();
+            Map<String, String> resultMessage = new LinkedHashMap<>();
+            resultMessage.put("en", "System error: " + e.getMessage());
+            resultMessage.put("vn", "Lỗi hệ thống: " + e.getMessage());
+            errorResponse.put("resultMessage", resultMessage);
+            errorResponse.put("resultCode", "1999");
+            return ResponseEntity.status(500).body(errorResponse);
+        }
     }
 
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping
-    public ResponseEntity<ApiResponse> updateCategory(
+    public Object updateCategory(
             @RequestParam String oldName,
             @RequestParam String newName) {
-
-        ApiResponse response = categoryService.updateCategoryName(oldName, newName);
-        return ResponseEntity.ok(response);
+        try {
+            ApiResponse response = categoryService.updateCategoryName(oldName, newName);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new LinkedHashMap<>();
+            Map<String, String> resultMessage = new LinkedHashMap<>();
+            resultMessage.put("en", "System error: " + e.getMessage());
+            resultMessage.put("vn", "Lỗi hệ thống: " + e.getMessage());
+            errorResponse.put("resultMessage", resultMessage);
+            errorResponse.put("resultCode", "1999");
+            return ResponseEntity.status(500).body(errorResponse);
+        }
     }
 
 
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping
-    public ResponseEntity<ApiResponse> deleteCategory(@RequestParam String name) {
-        ApiResponse response = categoryService.deleteCategoryByName(name);
-        return ResponseEntity.ok(response);
+    public Object deleteCategory(@RequestParam String name) {
+        try {
+            ApiResponse response = categoryService.deleteCategoryByName(name);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new LinkedHashMap<>();
+            Map<String, String> resultMessage = new LinkedHashMap<>();
+            resultMessage.put("en", "System error: " + e.getMessage());
+            resultMessage.put("vn", "Lỗi hệ thống: " + e.getMessage());
+            errorResponse.put("resultMessage", resultMessage);
+            errorResponse.put("resultCode", "1999");
+            return ResponseEntity.status(500).body(errorResponse);
+        }
     }
 }

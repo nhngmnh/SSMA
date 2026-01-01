@@ -15,6 +15,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @RestController
@@ -25,78 +26,88 @@ public class ShoppingListController {
     private final ShoppingListService shoppingListService;
     private final ShoppingTaskService shoppingTaskService;
     @PostMapping
-    public ResponseEntity<?> create(
+    public Object create(
             @ModelAttribute CreateShoppingListRequest request,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
+        try {
+            String username = userDetails.getUsername();
+            System.out.println("USERNAME = " + username);
 
-        String username = userDetails.getUsername();
-        System.out.println("USERNAME = " + username);
+            ShoppingListResponse response =
+                    shoppingListService.create(request, username);
 
-        ShoppingListResponse response =
-                shoppingListService.create(request, username);
-
-
-        return ResponseEntity.ok(
-                ApiResponse.<ShoppingListResponse>builder()
-                        .success(true)
-                        .message("Danh sách mua sắm đã được tạo thành công")
-                        .code(249)
-                        .data(response)
-                        .build()
-        );
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new LinkedHashMap<>();
+            Map<String, String> resultMessage = new LinkedHashMap<>();
+            resultMessage.put("en", "System error: " + e.getMessage());
+            resultMessage.put("vn", "Lỗi hệ thống: " + e.getMessage());
+            errorResponse.put("resultMessage", resultMessage);
+            errorResponse.put("resultCode", "1999");
+            return ResponseEntity.status(500).body(errorResponse);
+        }
     }
 
     @PutMapping
-    public ResponseEntity<?> update(
+    public Object update(
             @ModelAttribute UpdateShoppingListRequest request,
             @AuthenticationPrincipal User currentUser
     ) {
-        ShoppingListResponse response =
-                shoppingListService.update(request, currentUser);
+        try {
+            ShoppingListResponse response =
+                    shoppingListService.update(request, currentUser);
 
-        return ResponseEntity.ok(
-                ApiResponse.<ShoppingListResponse>builder()
-                        .success(true)
-                        .message("Shopping list updated successfully | Cập nhật danh sách mua sắm thành công")
-                        .code(249)
-                        .data(response)
-                        .build()
-        );
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new LinkedHashMap<>();
+            Map<String, String> resultMessage = new LinkedHashMap<>();
+            resultMessage.put("en", "System error: " + e.getMessage());
+            resultMessage.put("vn", "Lỗi hệ thống: " + e.getMessage());
+            errorResponse.put("resultMessage", resultMessage);
+            errorResponse.put("resultCode", "1999");
+            return ResponseEntity.status(500).body(errorResponse);
+        }
     }
 
     @DeleteMapping
-    public ResponseEntity<?> delete(
+    public Object delete(
             @RequestParam Long listId,
             @AuthenticationPrincipal User currentUser
     ) {
-        shoppingListService.delete(listId, currentUser);
-
-
-        return ResponseEntity.ok(
-                ApiResponse.<Void>builder()
-                        .success(true)
-                        .message("Xóa danh sách mua sắm thành công")
-                        .code(275)
-                        .build()
-        );
+        try {
+            shoppingListService.delete(listId, currentUser);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new LinkedHashMap<>();
+            Map<String, String> resultMessage = new LinkedHashMap<>();
+            resultMessage.put("en", "System error: " + e.getMessage());
+            resultMessage.put("vn", "Lỗi hệ thống: " + e.getMessage());
+            errorResponse.put("resultMessage", resultMessage);
+            errorResponse.put("resultCode", "1999");
+            return ResponseEntity.status(500).body(errorResponse);
+        }
     }
     @PostMapping("/task")
-    public ResponseEntity<?> createTasks(
+    public Object createTasks(
             @RequestBody CreateShoppingTasksRequest request,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
-        String username = userDetails.getUsername();
+        try {
+            String username = userDetails.getUsername();
 
-        shoppingTaskService.createTasks(request, username);
+            shoppingTaskService.createTasks(request, username);
 
-        return ResponseEntity.ok(
-                ApiResponse.<Void>builder()
-                        .success(true)
-                        .message("Thêm nhiệm vụ thành công")
-                        .code(287)
-                        .build()
-        );
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new LinkedHashMap<>();
+            Map<String, String> resultMessage = new LinkedHashMap<>();
+            resultMessage.put("en", "System error: " + e.getMessage());
+            resultMessage.put("vn", "Lỗi hệ thống: " + e.getMessage());
+            errorResponse.put("resultMessage", resultMessage);
+            errorResponse.put("resultCode", "1999");
+            return ResponseEntity.status(500).body(errorResponse);
+        }
     }
 
 

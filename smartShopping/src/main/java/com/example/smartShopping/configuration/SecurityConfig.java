@@ -24,9 +24,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/public/**").permitAll()
-                        .requestMatchers("/api/user/**").permitAll()
+                        .requestMatchers("/api/**").permitAll() // Allow all /api endpoints without authentication
                         .requestMatchers("/user/logout/**").permitAll() // Cho phép logout không cần auth
                         .anyRequest().authenticated()
                 )

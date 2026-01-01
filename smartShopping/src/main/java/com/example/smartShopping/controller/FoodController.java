@@ -28,19 +28,19 @@ public class FoodController {
     private final JwtTokenProvider jwtTokenProvider;
 
     @PostMapping
-    public FoodResponse createFood(
+    public Object createFood(
             @ModelAttribute FoodRequest req,
             @RequestHeader("Authorization") String authHeader
     ) {
         try {
             Long userId = extractUserIdFromToken(authHeader);
-            return foodService.createFood(req, userId);
+            return ResponseEntity.ok(foodService.createFood(req, userId));
         } catch (Exception e) {
             e.printStackTrace(); // xem stacktrace ở console
-            return FoodResponse.builder()
+            return ResponseEntity.status(500).body(FoodResponse.builder()
                     .resultCode("1999")
                     .resultMessage(new FoodResponse.ResultMessage("Lỗi hệ thống", "System error"))
-                    .build();
+                    .build());
         }
     }
 
@@ -52,9 +52,14 @@ public class FoodController {
         }
 
         String token = header.substring(7); // bỏ "Bearer "
+        
+        String secret = jwtTokenProvider.getSecret();
+        System.out.println("[JWT Verify] Secret key: " + secret);
+        System.out.println("[JWT Verify] Secret key length: " + secret.length());
+        System.out.println("[JWT Verify] Token to verify: " + token);
 
         Claims claims = Jwts.parser()
-                .setSigningKey(jwtTokenProvider.getSecret()) // lấy secret từ provider
+                .setSigningKey(secret) // lấy secret từ provider
                 .parseClaimsJws(token)
                 .getBody();
 
@@ -62,34 +67,34 @@ public class FoodController {
     }
 
     @PutMapping
-    public FoodUpdateResponse updateFood(
+    public Object updateFood(
             @ModelAttribute UpdateFoodRequest req,
             @RequestHeader("Authorization") String authHeader
     ) {
         try {
             Long userId = extractUserIdFromToken(authHeader);
-            return foodService.updateFood(req, userId);
+            return ResponseEntity.ok(foodService.updateFood(req, userId));
         } catch (Exception e) {
             e.printStackTrace();
-            return FoodUpdateResponse.builder()
+            return ResponseEntity.status(500).body(FoodUpdateResponse.builder()
                     .resultCode("1999")
                     .resultMessage(new FoodUpdateResponse.ResultMessage(
                             "System error", "Lỗi hệ thống"
                     ))
-                    .build();
+                    .build());
         }
     }
     @DeleteMapping
-    public FoodDeleteResponse deleteFood(
+    public Object deleteFood(
             @RequestParam String name,
             @RequestHeader("Authorization") String authHeader
     ) {
         try {
             Long UserId = extractUserIdFromToken(authHeader);
-            return foodService.deleteFood(name, UserId);
+            return ResponseEntity.ok(foodService.deleteFood(name, UserId));
         } catch (Exception e) {
             e.printStackTrace();
-            return FoodDeleteResponse.builder()
+            return ResponseEntity.status(500).body(FoodDeleteResponse.builder()
                     .resultCode("1999")
                     .resultMessage(
                             FoodDeleteResponse.ResultMessage.builder()
@@ -97,19 +102,19 @@ public class FoodController {
                                     .en("System error")
                                     .build()
                     )
-                    .build();
+                    .build());
         }
     }
     @GetMapping
-    public FoodResponse getAllFoods() {
+    public Object getAllFoods() {
         try {
-            return foodService.getAllFoods();
+            return ResponseEntity.ok(foodService.getAllFoods());
         } catch (Exception e) {
             e.printStackTrace();
-            return FoodResponse.builder()
+            return ResponseEntity.status(500).body(FoodResponse.builder()
                     .resultCode("1999")
                     .resultMessage(new FoodResponse.ResultMessage("Lỗi hệ thống", "System error"))
-                    .build();
+                    .build());
         }
     }
     @GetMapping("/unit")

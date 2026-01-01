@@ -8,6 +8,7 @@ import com.example.smartShopping.service.FridgeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -20,63 +21,83 @@ public class FridgeController {
     private final FridgeService fridgeService;
 
     @PostMapping
-    public ApiResponse<FridgeResponse> createFridge(
+    public Object createFridge(
             @ModelAttribute CreateFridgeRequest request
     ) {
-        FridgeResponse response = fridgeService.createFridge(request);
-
-        return ApiResponse.<FridgeResponse>builder()
-                .success(true)
-                .code(200)
-                .message("Fridge item created successfully.")
-                .data(response)
-                .build();
+        try {
+            FridgeResponse response = fridgeService.createFridge(request);
+            return org.springframework.http.ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new LinkedHashMap<>();
+            Map<String, String> resultMessage = new LinkedHashMap<>();
+            resultMessage.put("en", "System error: " + e.getMessage());
+            resultMessage.put("vn", "Lỗi hệ thống: " + e.getMessage());
+            errorResponse.put("resultMessage", resultMessage);
+            errorResponse.put("resultCode", "1999");
+            return org.springframework.http.ResponseEntity.status(500).body(errorResponse);
+        }
     }
     @PutMapping
-    public ApiResponse<FridgeResponse> updateFridge(
+    public Object updateFridge(
             @ModelAttribute UpdateFridgeRequest request
     ) {
-        FridgeResponse response = fridgeService.updateFridge(request);
-
-        return ApiResponse.<FridgeResponse>builder()
-                .success(true)
-                .code(200)
-                .message("Fridge item updated successfully.")
-                .data(response)
-                .build();
+        try {
+            FridgeResponse response = fridgeService.updateFridge(request);
+            return org.springframework.http.ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new LinkedHashMap<>();
+            Map<String, String> resultMessage = new LinkedHashMap<>();
+            resultMessage.put("en", "System error: " + e.getMessage());
+            resultMessage.put("vn", "Lỗi hệ thống: " + e.getMessage());
+            errorResponse.put("resultMessage", resultMessage);
+            errorResponse.put("resultCode", "1999");
+            return org.springframework.http.ResponseEntity.status(500).body(errorResponse);
+        }
     }
     @DeleteMapping
-    public ApiResponse<Void> deleteFridgeItem(@RequestParam String foodName) {
-
-        fridgeService.deleteFridgeItem(foodName);
-
-        return ApiResponse.<Void>builder()
-                .success(true)
-                .code(200)
-                .message("Fridge item deletion successful.")
-                .data(null)
-                .build();
+    public Object deleteFridgeItem(@RequestParam String foodName) {
+        try {
+            fridgeService.deleteFridgeItem(foodName);
+            return org.springframework.http.ResponseEntity.ok().build();
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new LinkedHashMap<>();
+            Map<String, String> resultMessage = new LinkedHashMap<>();
+            resultMessage.put("en", "System error: " + e.getMessage());
+            resultMessage.put("vn", "Lỗi hệ thống: " + e.getMessage());
+            errorResponse.put("resultMessage", resultMessage);
+            errorResponse.put("resultCode", "1999");
+            return org.springframework.http.ResponseEntity.status(500).body(errorResponse);
+        }
     }
     @GetMapping
-    public ApiResponse<List<FridgeResponse>> getAllFridgeItems() {
-        List<FridgeResponse> fridgeItems = fridgeService.getAllFridgeItems();
-
-        return ApiResponse.<List<FridgeResponse>>builder()
-                .success(true)
-                .code(200)
-                .message("Successfull retrieve all fridge items")
-                .data(fridgeItems)
-                .build();
+    public Object getAllFridgeItems() {
+        try {
+            List<FridgeResponse> fridgeItems = fridgeService.getAllFridgeItems();
+            return org.springframework.http.ResponseEntity.ok(fridgeItems);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new LinkedHashMap<>();
+            Map<String, String> resultMessage = new LinkedHashMap<>();
+            resultMessage.put("en", "System error: " + e.getMessage());
+            resultMessage.put("vn", "Lỗi hệ thống: " + e.getMessage());
+            errorResponse.put("resultMessage", resultMessage);
+            errorResponse.put("resultCode", "1999");
+            return org.springframework.http.ResponseEntity.status(500).body(errorResponse);
+        }
     }
     @GetMapping("/{foodName}")
-    public ApiResponse<List<FridgeResponse>> getFridgeItem(@PathVariable String foodName) {
-        List<FridgeResponse> response = fridgeService.getFridgeItemsByFoodName(foodName);
-        return ApiResponse.<List<FridgeResponse>>builder()
-                .success(true)
-                .code(200)
-                .message("Get specific item(s) successfull")
-                .data(response)
-                .build();
+    public Object getFridgeItem(@PathVariable String foodName) {
+        try {
+            List<FridgeResponse> response = fridgeService.getFridgeItemsByFoodName(foodName);
+            return org.springframework.http.ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new LinkedHashMap<>();
+            Map<String, String> resultMessage = new LinkedHashMap<>();
+            resultMessage.put("en", "System error: " + e.getMessage());
+            resultMessage.put("vn", "Lỗi hệ thống: " + e.getMessage());
+            errorResponse.put("resultMessage", resultMessage);
+            errorResponse.put("resultCode", "1999");
+            return org.springframework.http.ResponseEntity.status(500).body(errorResponse);
+        }
     }
 
 }

@@ -16,9 +16,6 @@ public class UpdateFoodRequest {
 
     private String newUnit;
 
-    private MultipartFile image;   // file mới (nếu có)
-
-
     private String imageUrl;       // link URL
 
 }

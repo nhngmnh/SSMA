@@ -8,6 +8,7 @@ import com.example.smartShopping.configuration.JwtTokenProvider;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
@@ -15,6 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -26,7 +28,7 @@ public class AuthService {
     public RegisterResponse register(RegisterRequest req) {
         if (userRepo.existsByEmail(req.getEmail()))
             throw new RuntimeException("Email đã tồn tại");
-
+        log.info("check emailok");
         User user = User.builder()
                 .name(req.getName())
                 .email(req.getEmail())
@@ -38,11 +40,11 @@ public class AuthService {
                 .isAdmin(false)
                 .isActive(true)
                 .build();
-
+        log.info("check userok");
         userRepo.save(user);
-
+        log.info("check user save ok");
         String confirmToken = jwtProvider.generateVerificationToken(user.getEmail(), user.getVerificationCode());
-
+        log.info("confirm token save ok");
         return RegisterResponse.builder()
                 .resultCode("00035")
                 .resultMessageEn("You registered successfully.")

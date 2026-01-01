@@ -26,13 +26,17 @@ public class JwtTokenProvider {
 
 
     public String generateAccessToken(Long userId, String email) {
-        return Jwts.builder()
+        System.out.println("[JWT Generate] Secret key: " + jwtSecret);
+        System.out.println("[JWT Generate] Secret key length: " + jwtSecret.length());
+        String token = Jwts.builder()
                 .setSubject(email)             // lưu email
                 .claim("userId", userId)       // lưu userId
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
-                .signWith(SignatureAlgorithm.HS512, jwtSecret)
+                .signWith(SignatureAlgorithm.HS256, jwtSecret)
                 .compact();
+        System.out.println("[JWT Generate] Generated token: " + token);
+        return token;
     }
 
 
@@ -42,7 +46,7 @@ public class JwtTokenProvider {
                 .setSubject(email)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + refreshExpiration))
-                .signWith(SignatureAlgorithm.HS512, jwtSecret)
+                .signWith(SignatureAlgorithm.HS256, jwtSecret)
                 .compact();
     }
 
@@ -70,7 +74,7 @@ public class JwtTokenProvider {
                 .claim("code", verificationCode)         // lưu mã xác thực
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 5 * 60 * 1000)) // 5 phút
-                .signWith(SignatureAlgorithm.HS512, jwtSecret)
+                .signWith(SignatureAlgorithm.HS256, jwtSecret)
                 .compact();
     }
 
