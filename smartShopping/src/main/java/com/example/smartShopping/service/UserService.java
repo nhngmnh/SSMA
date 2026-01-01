@@ -90,7 +90,7 @@ public class UserService {
         userRepo.save(user);
 
         // ✅ 4. Sinh accessToken và refreshToken mới
-        String accessToken = jwtTokenProvider.generateAccessToken(email);
+        String accessToken = jwtTokenProvider.generateAccessToken(user.getId(),email);
         String refreshToken = jwtTokenProvider.generateRefreshToken(email);
 
         // ✅ 5. Trả về phản hồi

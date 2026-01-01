@@ -2,6 +2,7 @@ package com.example.smartShopping.service;
 
 
 import com.example.smartShopping.dto.request.CategoryRequest;
+import com.example.smartShopping.dto.response.CategoryResponse;
 import com.example.smartShopping.entity.Category;
 import com.example.smartShopping.dto.response.ApiResponse;
 
@@ -13,4 +14,5 @@ public interface CategoryService {
     ApiResponse updateCategoryName(String oldName, String newName);
     ApiResponse deleteCategoryByName(String name);
 
+    CategoryResponse getAllCategoriesFood();
 }

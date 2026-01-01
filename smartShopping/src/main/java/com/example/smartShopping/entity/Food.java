@@ -17,18 +17,29 @@ public class Food {
 
     private String name;
 
-    private Long UnitOfMeasurementId;
+    @Column(name = "unit_of_measurement_id")
+    private Long unitOfMeasurementId;
 
-    private Long FoodCategoryId;
+    @Column(name = "food_category_id")
+    private Long foodCategoryId;
 
-    private Long UserId;
+    @Column(name = "user_id")
+    private Long userId;
 
     private String imageUrl;
 
-    private String type; // ingredient, food,...
+    private String type;
 
     @Column(nullable = false, updatable = false)
     private String createdAt;
 
     private String updatedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "unit_of_measurement_id", insertable = false, updatable = false)
+    private Unit unitOfMeasurement;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "food_category_id", insertable = false, updatable = false)
+    private Category foodCategory;
 }
