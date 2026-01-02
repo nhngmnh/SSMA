@@ -34,7 +34,7 @@ public class MealController {
     ) {
         try {
             Long userId = extractUserIdFromToken(authHeader);
-            MealResponse response = mealService.createMeal(request, userId);
+            MealResponse response = mealService.createMeal(request, userId, authHeader);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             e.printStackTrace();

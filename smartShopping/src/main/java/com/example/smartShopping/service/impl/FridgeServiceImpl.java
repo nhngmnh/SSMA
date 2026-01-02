@@ -9,10 +9,13 @@ import com.example.smartShopping.dto.response.FridgeGetAllResponse;
 import com.example.smartShopping.entity.Food;
 import com.example.smartShopping.entity.Fridge;
 import com.example.smartShopping.entity.User;
+import com.example.smartShopping.entity.GroupEntity;
 import com.example.smartShopping.repository.FoodRepository;
 import com.example.smartShopping.repository.FridgeRepository;
 import com.example.smartShopping.repository.UserRepository;
+import com.example.smartShopping.repository.GroupRepository;
 import com.example.smartShopping.service.FridgeService;
+import com.example.smartShopping.service.AuthorizationService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -31,11 +34,24 @@ public class FridgeServiceImpl implements FridgeService {
     private final FridgeRepository fridgeRepository;
     private final FoodRepository foodRepository;
     private final UserRepository userRepository;
+    private final GroupRepository groupRepository;
+    private final AuthorizationService authService;
 
     @Override
-    public FridgeCreateResponse createFridge(CreateFridgeRequest request) {
+    public FridgeCreateResponse createFridge(CreateFridgeRequest request, Long userId, String authHeader) {
         try {
-            User user = getCurrentUser();
+            // Get user from userId parameter
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // If groupId is provided, validate user can create for this group
+            if (request.getGroupId() != null) {
+                authService.requireModifyGroupData(authHeader, request.getGroupId());
+            }
+            // If no groupId, this is personal data - validate user is creating for themselves
+            else {
+                authService.requireModifyPersonalData(authHeader, userId);
+            }
 
             Food food = foodRepository.findByNameIgnoreCase(request.getFoodName())
                     .orElseThrow(() -> new RuntimeException("Food not found"));
@@ -49,6 +65,7 @@ public class FridgeServiceImpl implements FridgeService {
                     .quantity(request.getQuantity())
                     .food(food)
                     .user(user)
+                    .groupId(request.getGroupId())
                     .build();
 
             fridgeRepository.save(fridge);
@@ -61,6 +78,7 @@ public class FridgeServiceImpl implements FridgeService {
                     .note(fridge.getNote())
                     .foodName(fridge.getFood().getName())
                     .foodId(fridge.getFood().getId())
+                    .groupId(fridge.getGroupId())
                     .build();
 
             return FridgeCreateResponse.builder()
@@ -84,12 +102,18 @@ public class FridgeServiceImpl implements FridgeService {
     }
 
     @Override
-    public FridgeUpdateResponse updateFridge(UpdateFridgeRequest request) {
+    public FridgeUpdateResponse updateFridge(UpdateFridgeRequest request, String authHeader) {
         try {
-            User user = getCurrentUser();
-
-            Fridge fridge = fridgeRepository.findByIdAndUserId(request.getItemId(), user.getId())
+            // Find the fridge item first
+            Fridge fridge = fridgeRepository.findById(request.getItemId())
                     .orElseThrow(() -> new RuntimeException("Fridge item not found"));
+
+            // Validate permission based on whether it's personal or group data
+            if (fridge.getGroupId() != null) {
+                authService.requireModifyGroupData(authHeader, fridge.getGroupId());
+            } else {
+                authService.requireModifyPersonalData(authHeader, fridge.getUser().getId());
+            }
 
             if (request.getNewNote() != null) {
                 fridge.setNote(request.getNewNote());
@@ -119,6 +143,7 @@ public class FridgeServiceImpl implements FridgeService {
                     .note(fridge.getNote())
                     .foodName(fridge.getFood().getName())
                     .foodId(fridge.getFood().getId())
+                    .groupId(fridge.getGroupId())
                     .build();
 
             return FridgeUpdateResponse.builder()
@@ -142,15 +167,28 @@ public class FridgeServiceImpl implements FridgeService {
     }
 
     @Override
-    public FridgeDeleteResponse deleteFridgeItem(String foodName) {
+    public FridgeDeleteResponse deleteFridgeItem(String foodName, String authHeader) {
         try {
-            User user = getCurrentUser();
+            Long userId = authService.getUserIdFromAuth(authHeader);
 
-            int deletedCount = fridgeRepository.deleteByUserIdAndFoodName(user.getId(), foodName);
-
-            if (deletedCount == 0) {
+            // Find items by userId and foodName
+            List<Fridge> items = fridgeRepository.findByUserIdAndFood_NameIgnoreCase(userId, foodName);
+            
+            if (items.isEmpty()) {
                 throw new RuntimeException("Fridge item not found: " + foodName);
             }
+
+            // Validate permission for each item before deleting
+            for (Fridge item : items) {
+                if (item.getGroupId() != null) {
+                    authService.requireModifyGroupData(authHeader, item.getGroupId());
+                } else {
+                    authService.requireModifyPersonalData(authHeader, item.getUser().getId());
+                }
+            }
+
+            // Delete all matching items
+            int deletedCount = fridgeRepository.deleteByUserIdAndFoodName(userId, foodName);
 
             return FridgeDeleteResponse.builder()
                     .resultCode("00160")
@@ -172,11 +210,20 @@ public class FridgeServiceImpl implements FridgeService {
     }
 
     @Override
-    public FridgeGetAllResponse getAllFridgeItems() {
+    public FridgeGetAllResponse getAllFridgeItems(Long userId, String authHeader) {
         try {
-            User user = getCurrentUser();
+            // Get user and their groups
+            User user = authService.getUserFromAuth(authHeader);
+            
+            // Start with personal items
+            List<Fridge> fridgeList = fridgeRepository.findByUserId(userId);
 
-            List<Fridge> fridgeList = fridgeRepository.findByUserId(user.getId());
+            // Add items from user's groups (where user is member or owner)
+            List<GroupEntity> userGroups = groupRepository.findAllByMembersContainingOrAdminId(userId, userId);
+            for (GroupEntity group : userGroups) {
+                List<Fridge> groupItems = fridgeRepository.findByGroupId(group.getId());
+                fridgeList.addAll(groupItems);
+            }
 
             List<FridgeGetAllResponse.FridgeDto> fridgeDtos = fridgeList.stream()
                     .map(fridge -> FridgeGetAllResponse.FridgeDto.builder()
@@ -187,6 +234,7 @@ public class FridgeServiceImpl implements FridgeService {
                             .note(fridge.getNote())
                             .foodName(fridge.getFood().getName())
                             .foodId(fridge.getFood().getId())
+                            .groupId(fridge.getGroupId())
                             .build())
                     .collect(Collectors.toList());
 
@@ -211,11 +259,20 @@ public class FridgeServiceImpl implements FridgeService {
     }
 
     @Override
-    public FridgeGetAllResponse getFridgeItemsByFoodName(String foodName) {
+    public FridgeGetAllResponse getFridgeItemsByFoodName(String foodName, Long userId, String authHeader) {
         try {
-            User user = getCurrentUser();
+            // Get user and their groups
+            User user = authService.getUserFromAuth(authHeader);
+            
+            // Get personal items with matching food name
+            List<Fridge> fridgeItems = fridgeRepository.findByFood_NameIgnoreCaseAndUserId(foodName, userId);
 
-            List<Fridge> fridgeItems = fridgeRepository.findByFood_NameIgnoreCaseAndUserId(foodName, user.getId());
+            // Add items from user's groups
+            List<GroupEntity> userGroups = groupRepository.findAllByMembersContainingOrAdminId(userId, userId);
+            for (GroupEntity group : userGroups) {
+                List<Fridge> groupItems = fridgeRepository.findByFood_NameIgnoreCaseAndGroupId(foodName, group.getId());
+                fridgeItems.addAll(groupItems);
+            }
 
             if (fridgeItems.isEmpty()) {
                 throw new RuntimeException("Fridge item not found");
@@ -230,6 +287,7 @@ public class FridgeServiceImpl implements FridgeService {
                             .note(fridge.getNote())
                             .foodName(fridge.getFood().getName())
                             .foodId(fridge.getFood().getId())
+                            .groupId(fridge.getGroupId())
                             .build())
                     .collect(Collectors.toList());
 
@@ -251,12 +309,5 @@ public class FridgeServiceImpl implements FridgeService {
                             .build())
                     .build();
         }
-    }
-
-    private User getCurrentUser() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String email = auth.getName();
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
     }
 }

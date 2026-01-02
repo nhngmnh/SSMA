@@ -1,6 +1,7 @@
 package com.example.smartShopping.dto.request;
 
 import lombok.*;
+import java.util.List;
 
 @Getter @Setter
 @AllArgsConstructor @NoArgsConstructor
@@ -10,5 +11,5 @@ public class UpdateRecipeRequest {
     private String name;
     private String description;
     private String htmlContent;
-    private Long foodId;
+    private List<Long> foodIds;
 }

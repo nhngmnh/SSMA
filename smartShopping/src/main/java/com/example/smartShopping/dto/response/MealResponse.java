@@ -1,6 +1,7 @@
 package com.example.smartShopping.dto.response;
 
 import lombok.*;
+import java.util.List;
 
 @Getter @Setter
 @AllArgsConstructor @NoArgsConstructor @Builder
@@ -24,8 +25,9 @@ public class MealResponse {
         private String name;
         private String timestamp;
         private String status;
-        private Long FoodId;
+        private List<Long> recipeIds; // Danh sách recipe IDs
         private Long UserId;
+        private Long groupId;
         private String updatedAt;
         private String createdAt;
     }

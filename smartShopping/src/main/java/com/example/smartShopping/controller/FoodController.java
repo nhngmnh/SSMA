@@ -5,10 +5,12 @@ package com.example.smartShopping.controller;
 import com.example.smartShopping.dto.request.FoodRequest;
 import com.example.smartShopping.dto.request.UpdateFoodRequest;
 import com.example.smartShopping.dto.response.*;
+import com.example.smartShopping.entity.User;
 import com.example.smartShopping.service.FoodService;
 import com.example.smartShopping.configuration.JwtTokenProvider;
 import com.example.smartShopping.service.UnitService;
 import com.example.smartShopping.service.CategoryService;
+import com.example.smartShopping.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +28,7 @@ public class FoodController {
     private final UnitService unitService;
     private final CategoryService categoryService; // thêm service unit
     private final JwtTokenProvider jwtTokenProvider;
+    private final UserRepository userRepository;
 
     @PostMapping
     public Object createFood(
@@ -33,6 +36,17 @@ public class FoodController {
             @RequestHeader("Authorization") String authHeader
     ) {
         try {
+            // Check if user is admin
+            if (!isAdmin(authHeader)) {
+                java.util.Map<String, Object> errorResponse = new java.util.LinkedHashMap<>();
+                java.util.Map<String, String> resultMessage = new java.util.LinkedHashMap<>();
+                resultMessage.put("en", "Access denied - Admin permission required");
+                resultMessage.put("vn", "Truy cập bị từ chối - Yêu cầu quyền Admin");
+                errorResponse.put("resultMessage", resultMessage);
+                errorResponse.put("resultCode", "40301");
+                return ResponseEntity.status(403).body(errorResponse);
+            }
+            
             Long userId = extractUserIdFromToken(authHeader);
             return ResponseEntity.ok(foodService.createFood(req, userId));
         } catch (Exception e) {
@@ -204,6 +218,17 @@ public class FoodController {
             errorResponse.put("resultMessage", resultMessage);
             errorResponse.put("resultCode", "1999");
             return ResponseEntity.status(500).body(errorResponse);
+        }
+    }
+
+    private boolean isAdmin(String authHeader) {
+        try {
+            String token = authHeader.replace("Bearer ", "");
+            String email = jwtTokenProvider.getEmailFromToken(token);
+            User user = userRepository.findByEmail(email).orElse(null);
+            return user != null && user.getIsAdmin() != null && user.getIsAdmin();
+        } catch (Exception e) {
+            return false;
         }
     }
 

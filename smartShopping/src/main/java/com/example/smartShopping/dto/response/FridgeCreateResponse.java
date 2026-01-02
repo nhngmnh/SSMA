@@ -38,5 +38,6 @@ public class FridgeCreateResponse {
         private String note;
         private String foodName;
         private Long foodId;
+        private Long groupId;
     }
 }

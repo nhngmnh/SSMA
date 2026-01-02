@@ -28,6 +28,6 @@ public class GetRecipesResponse {
         private String htmlContent;
         private String createdAt;
         private String updatedAt;
-        private Long FoodId;
+        private List<Long> foodIds;
     }
 }

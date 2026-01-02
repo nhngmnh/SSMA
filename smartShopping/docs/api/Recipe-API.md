@@ -2,6 +2,35 @@
 
 Base URL: `/api/recipe`
 
+## Business Logic
+
+### Structure:
+```
+Recipe (Công thức nấu ăn) - 1 recipe có nhiều nguyên liệu
+  ├── Food 1: Thịt heo (Food ID: 10)
+  ├── Food 2: Rau cải (Food ID: 20)
+  ├── Food 3: Hành (Food ID: 30)
+  └── Food 4: Tỏi (Food ID: 40)
+```
+
+### Data Storage:
+- **Recipe.foodIds**: JSON array `[10, 20, 30, 40]` - Danh sách food IDs (nguyên liệu)
+- Không dùng quan hệ JPA, xử lý trong logic service
+- Frontend cần gọi Food API để lấy thông tin chi tiết từng food
+
+### Recipe Types:
+1. **Public Recipe (isPublic = true)**:
+   - Được tạo bởi admin
+   - Visible cho tất cả users
+   - Chỉ admin mới có thể modify/delete
+
+2. **Group Recipe (isPublic = false)**:
+   - Thuộc về 1 group cụ thể
+   - Chỉ members trong group mới thấy
+   - Group owner hoặc admin có thể modify/delete
+
+---
+
 ## Table of Contents
 1. [Get Recipes by Food ID](#1-get-recipes-by-food-id)
 2. [Create Recipe](#2-create-recipe)
@@ -32,39 +61,29 @@ GET /api/recipe?foodId=1
 **Response Success (200):**
 ```json
 {
-  "resultCode": "00150",
+  "resultCode": "00360",
   "resultMessage": {
-    "en": "Recipes retrieved successfully",
-    "vn": "Lấy công thức thành công"
+    "en": "Get recipes successful",
+    "vn": "Lấy danh sách công thức thành công"
   },
   "recipes": [
     {
       "id": 1,
-      "name": "Scrambled Eggs",
-      "description": "Simple and delicious scrambled eggs",
-      "mainFoodId": 1,
-      "mainFoodName": "Egg",
-      "servings": 2,
-      "prepTime": 5,
-      "cookTime": 10,
-      "totalTime": 15,
-      "difficulty": "EASY",
-      "cuisine": "Western",
-      "createdAt": "2026-01-01T10:00:00"
+      "name": "Canh thịt heo nấu rau cải",
+      "description": "Món canh đơn giản, bổ dưỡng",
+      "htmlContent": "<h1>Cách nấu</h1><p>Bước 1: Luộc thịt...</p>",
+      "foodIds": [10, 20, 30, 40],
+      "createdAt": "2026-01-01 10:00:00",
+      "updatedAt": "2026-01-01 10:00:00"
     },
     {
       "id": 2,
-      "name": "Boiled Eggs",
-      "description": "Perfect hard-boiled eggs",
-      "mainFoodId": 1,
-      "mainFoodName": "Egg",
-      "servings": 4,
-      "prepTime": 2,
-      "cookTime": 12,
-      "totalTime": 14,
-      "difficulty": "EASY",
-      "cuisine": "Universal",
-      "createdAt": "2026-01-01T11:00:00"
+      "name": "Canh cá nấu chua",
+      "description": "Món canh chua miền Nam",
+      "htmlContent": "<h1>Cách nấu</h1><p>Bước 1: Làm sạch cá...</p>",
+      "foodIds": [15, 25, 35],
+      "createdAt": "2026-01-01 11:00:00",
+      "updatedAt": "2026-01-01 11:00:00"
     }
   ]
 }
@@ -98,90 +117,35 @@ Content-Type: application/json
 **Request Body:**
 ```json
 {
-  "name": "Scrambled Eggs",
-  "description": "Simple and delicious scrambled eggs",
-  "mainFoodId": 1,
-  "servings": 2,
-  "prepTime": 5,
-  "cookTime": 10,
-  "difficulty": "EASY",
-  "cuisine": "Western",
-  "ingredients": [
-    {
-      "foodId": 1,
-      "foodName": "Egg",
-      "quantity": 4,
-      "unitName": "piece",
-      "note": "Large eggs"
-    },
-    {
-      "foodId": 2,
-      "foodName": "Milk",
-      "quantity": 50,
-      "unitName": "ml",
-      "note": "Whole milk"
-    },
-    {
-      "foodId": 3,
-      "foodName": "Butter",
-      "quantity": 20,
-      "unitName": "g",
-      "note": "Unsalted butter"
-    }
-  ],
-  "instructions": [
-    {
-      "stepNumber": 1,
-      "description": "Crack eggs into a bowl and add milk",
-      "duration": 2
-    },
-    {
-      "stepNumber": 2,
-      "description": "Beat eggs and milk together until well combined",
-      "duration": 3
-    },
-    {
-      "stepNumber": 3,
-      "description": "Heat butter in a non-stick pan over medium heat",
-      "duration": 2
-    },
-    {
-      "stepNumber": 4,
-      "description": "Pour egg mixture into pan and cook, stirring gently",
-      "duration": 8
-    }
-  ],
-  "tags": ["breakfast", "quick", "easy", "protein"],
-  "note": "For creamier eggs, remove from heat while still slightly runny"
+  "name": "Canh thịt heo nấu rau cải",
+  "description": "Món canh đơn giản, bổ dưỡng",
+  "htmlContent": "<h1>Cách nấu</h1><p>Bước 1: Luộc thịt...</p>",
+  "foodIds": [10, 20, 30, 40]
 }
 ```
+
+**Field Descriptions:**
+- `name`: Tên món ăn
+- `description`: Mô tả ngắn
+- `htmlContent`: Nội dung chi tiết (HTML format)
+- `foodIds`: Danh sách food IDs (nguyên liệu)
 
 **Response Success (200):**
 ```json
 {
-  "resultCode": "00151",
+  "resultCode": "00357",
   "resultMessage": {
-    "en": "Recipe created successfully",
-    "vn": "Tạo công thức thành công"
+    "en": "Add recipe successfull",
+    "vn": "Thêm công thức nấu ăn thành công"
   },
-  "recipe": {
-    "id": 1,
-    "name": "Scrambled Eggs",
-    "description": "Simple and delicious scrambled eggs",
-    "mainFoodId": 1,
-    "mainFoodName": "Egg",
-    "servings": 2,
-    "prepTime": 5,
-    "cookTime": 10,
-    "totalTime": 15,
-    "difficulty": "EASY",
-    "cuisine": "Western",
-    "ingredients": [...],
-    "instructions": [...],
-    "tags": ["breakfast", "quick", "easy", "protein"],
-    "note": "For creamier eggs, remove from heat while still slightly runny",
-    "createdBy": 1,
-    "createdAt": "2026-01-02T10:00:00"
+  "newRecipe": {
+    "id": 15,
+    "name": "Canh thịt heo nấu rau cải",
+    "description": "Món canh đơn giản, bổ dưỡng",
+    "htmlContent": "<h1>Cách nấu</h1><p>Bước 1: Luộc thịt...</p>",
+    "foodIds": [10, 20, 30, 40],
+    "createdAt": "2026-01-02 14:30:00",
+    "updatedAt": "2026-01-02 14:30:00"
   }
 }
 ```
@@ -214,53 +178,30 @@ Content-Type: application/json
 **Request Body:**
 ```json
 {
-  "recipeId": 1,
-  "name": "Perfect Scrambled Eggs",
-  "description": "Updated description",
-  "servings": 3,
-  "prepTime": 5,
-  "cookTime": 12,
-  "difficulty": "EASY",
-  "cuisine": "Western",
-  "ingredients": [
-    {
-      "foodId": 1,
-      "foodName": "Egg",
-      "quantity": 6,
-      "unitName": "piece",
-      "note": "Large eggs"
-    },
-    {
-      "foodId": 2,
-      "foodName": "Milk",
-      "quantity": 75,
-      "unitName": "ml",
-      "note": "Whole milk"
-    }
-  ],
-  "instructions": [...],
-  "tags": ["breakfast", "easy"],
-  "note": "Updated note"
+  "id": 15,
+  "name": "Canh thịt heo nấu rau cải - Updated",
+  "description": "Món canh đơn giản, bổ dưỡng - mô tả mới",
+  "htmlContent": "<h1>Cách nấu mới</h1><p>Bước 1: Luộc thịt kỹ hơn...</p>",
+  "foodIds": [10, 20, 30, 40, 50]
 }
 ```
 
 **Response Success (200):**
 ```json
 {
-  "resultCode": "00152",
+  "resultCode": "00358",
   "resultMessage": {
-    "en": "Recipe updated successfully",
-    "vn": "Cập nhật công thức thành công"
+    "en": "Update recipe successful",
+    "vn": "Cập nhật công thức nấu ăn thành công"
   },
-  "recipe": {
-    "id": 1,
-    "name": "Perfect Scrambled Eggs",
-    "description": "Updated description",
-    "servings": 3,
-    "prepTime": 5,
-    "cookTime": 12,
-    "totalTime": 17,
-    "updatedAt": "2026-01-02T11:00:00"
+  "updatedRecipe": {
+    "id": 15,
+    "name": "Canh thịt heo nấu rau cải - Updated",
+    "description": "Món canh đơn giản, bổ dưỡng - mô tả mới",
+    "htmlContent": "<h1>Cách nấu mới</h1><p>Bước 1: Luộc thịt kỹ hơn...</p>",
+    "foodIds": [10, 20, 30, 40, 50],
+    "createdAt": "2026-01-02 14:30:00",
+    "updatedAt": "2026-01-02 15:45:00"
   }
 }
 ```
@@ -293,17 +234,17 @@ Content-Type: application/json
 **Request Body:**
 ```json
 {
-  "recipeId": 1
+  "recipeId": 15
 }
 ```
 
 **Response Success (200):**
 ```json
 {
-  "resultCode": "00153",
+  "resultCode": "00359",
   "resultMessage": {
-    "en": "Recipe deleted successfully",
-    "vn": "Xóa công thức thành công"
+    "en": "Delete recipe successful",
+    "vn": "Xóa công thức nấu ăn thành công"
   }
 }
 ```
@@ -325,11 +266,10 @@ Content-Type: application/json
 
 | Code | Description (EN) | Description (VN) |
 |------|------------------|------------------|
-| 00150 | Recipes retrieved | Lấy công thức thành công |
-| 00151 | Recipe created | Tạo công thức thành công |
-| 00152 | Recipe updated | Cập nhật công thức thành công |
-| 00153 | Recipe deleted | Xóa công thức thành công |
-| 1404 | Recipe not found | Không tìm thấy công thức |
+| 00357 | Add recipe successful | Thêm công thức nấu ăn thành công |
+| 00358 | Update recipe successful | Cập nhật công thức nấu ăn thành công |
+| 00359 | Delete recipe successful | Xóa công thức nấu ăn thành công |
+| 00360 | Get recipes successful | Lấy danh sách công thức thành công |
 | 1999 | System error | Lỗi hệ thống |
 
 ---
@@ -337,13 +277,8 @@ Content-Type: application/json
 ## Notes
 
 1. **Authentication**: Tất cả endpoints yêu cầu `Authorization: Bearer {accessToken}`
-2. **Difficulty Levels**:
-   - `EASY`: Dễ
-   - `MEDIUM`: Trung bình
-   - `HARD`: Khó
-3. **Time Units**: Tất cả thời gian tính bằng phút (minutes)
-4. **Total Time**: Tự động tính = prepTime + cookTime
-5. **Ingredients**: Danh sách nguyên liệu với số lượng và đơn vị cụ thể
-6. **Instructions**: Các bước thực hiện được đánh số thứ tự
-7. **Tags**: Hỗ trợ tìm kiếm và phân loại công thức
-8. **Main Food**: Thực phẩm chính của công thức (dùng để search recipes by food)
+2. **Food IDs**: Danh sách `foodIds` chứa IDs của các nguyên liệu. Frontend cần gọi Food API riêng để lấy thông tin chi tiết (tên, đơn vị, hình ảnh...)
+3. **HTML Content**: Field `htmlContent` chứa hướng dẫn nấu ăn ở định dạng HTML
+4. **Recipe Search**: Có thể tìm recipes theo foodId - sẽ trả về tất cả recipes có chứa food đó trong danh sách nguyên liệu
+5. **Group Recipes**: Recipes có thể thuộc về group (có `groupId`) hoặc là public recipes
+6. **Timestamps**: `createdAt` và `updatedAt` theo format "yyyy-MM-dd HH:mm:ss"

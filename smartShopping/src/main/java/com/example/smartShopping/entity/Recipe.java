@@ -1,7 +1,11 @@
 package com.example.smartShopping.entity;
 
+import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
+import org.hibernate.annotations.Type;
 import jakarta.persistence.*;
 import lombok.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "recipes")
@@ -22,8 +26,17 @@ public class Recipe {
     @Column(name = "html_content", columnDefinition = "TEXT")
     private String htmlContent;
 
-    @Column(name = "food_id")
-    private Long foodId;
+    // Danh sách food IDs (nguyên liệu cần cho món ăn)
+    @Type(JsonBinaryType.class)
+    @Column(name = "food_ids", columnDefinition = "jsonb")
+    @Builder.Default
+    private List<Long> foodIds = new ArrayList<>();
+
+    @Column(name = "group_id")
+    private Long groupId;
+
+    @Column(name = "is_public")
+    private Boolean isPublic = false;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private String createdAt;

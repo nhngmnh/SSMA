@@ -1,6 +1,7 @@
 package com.example.smartShopping.dto.response;
 
 import lombok.*;
+import java.util.List;
 
 @Getter @Setter
 @AllArgsConstructor @NoArgsConstructor @Builder
@@ -24,7 +25,7 @@ public class MealDetailResponse {
         private String name;
         private String timestamp;
         private String status;
-        private Long foodId;
+        private List<Long> recipeIds;
         private Long userId;
         private String updatedAt;
         private String createdAt;

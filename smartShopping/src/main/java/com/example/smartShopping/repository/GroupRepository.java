@@ -18,4 +18,9 @@ public interface GroupRepository extends JpaRepository<GroupEntity, Long> {
     @Query(value = "SELECT * FROM groups WHERE group_id = :groupId AND members @> CAST(:userId AS BIGINT[])",
             nativeQuery = true)
     Optional<GroupEntity> checkUserInGroup(Long groupId, Long userId);
+
+    // Lấy tất cả groups mà user là member hoặc owner
+    @Query(value = "SELECT * FROM groups WHERE created_by = :adminId OR members @> CAST(:userId AS BIGINT[])",
+            nativeQuery = true)
+    List<GroupEntity> findAllByMembersContainingOrAdminId(Long userId, Long adminId);
 }

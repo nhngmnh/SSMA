@@ -2,6 +2,44 @@
 
 Base URL: `/api/meal`
 
+## Business Logic
+
+### Structure Overview:
+```
+Meal (Bữa ăn) - 1 meal có nhiều món
+  ├── Recipe 1 (Món canh)
+  │   ├── Food 1: Thịt heo
+  │   ├── Food 2: Rau cải
+  │   └── Food 3: Hành
+  ├── Recipe 2 (Món chiên)
+  │   ├── Food 4: Cá
+  │   └── Food 5: Dầu ăn
+  └── Recipe 3 (Món rau)
+```
+
+### Data Storage:
+- **Meal.recipeIds**: JSON array `[1, 2, 3]` - Danh sách recipe IDs
+- **Recipe.foodIds**: JSON array `[10, 20, 30]` - Danh sách food IDs (nguyên liệu)
+- Không dùng quan hệ JPA, xử lý trong logic service
+
+### Group Assignment Rules:
+1. **Thành viên thường (Regular Users)**:
+   - Khi tạo meal, hệ thống tự động gán `groupId` từ group mà user đang thuộc
+   - Mỗi user chỉ được thuộc **1 group duy nhất**
+   - **KHÔNG CẦN** truyền `groupId` trong request
+   - Nếu user không thuộc group nào → lỗi
+
+2. **Admin**:
+   - Có thể tạo meal cho **bất kỳ group nào**
+   - **CÓ THỂ** truyền `groupId` trong request để chọn group cụ thể
+   - Nếu không truyền `groupId` → meal sẽ thuộc group của admin (nếu có)
+
+### Permissions:
+- **View meals**: Tất cả members trong group có thể xem
+- **Modify/Delete meals**: Chỉ group owner hoặc admin
+
+---
+
 ## Table of Contents
 1. [Create Meal](#1-create-meal)
 2. [Update Meal](#2-update-meal)
@@ -23,32 +61,69 @@ Authorization: Bearer {accessToken}
 Content-Type: application/json
 ```
 
-**Request Body:**
+**Request Body (Thành viên thường):**
 ```json
 {
   "name": "Breakfast Plan",
   "timestamp": "2026-01-10 08:00:00",
-  "foodId": 1
+  "recipeIds": [1, 5, 12]
 }
 ```
+*Note: 
+- `recipeIds`: Danh sách recipe IDs (nhiều món trong 1 bữa ăn)
+- `groupId` sẽ tự động được gán từ group của user*
+
+**Request Body (Admin - Optional groupId):**
+```json
+{
+  "name": "Breakfast Plan",
+  "timestamp": "2026-01-10 08:00:00",
+  "recipeIds": [1, 5, 12],
+  "groupId": 5
+}
+```
+*Note: Admin có thể chọn groupId để tạo meal cho group cụ thể*
 
 **Response Success (200):**
 ```json
 {
-  "resultCode": "00140",
+  "resultCode": "00322",
   "resultMessage": {
-    "en": "Meal created successfully",
-    "vn": "Tạo bữa ăn thành công"
+    "en": "Add meal plan successfull",
+    "vn": "Thêm kế hoạch bữa ăn thành công"
   },
   "newPlan": {
     "id": 1,
     "name": "Breakfast Plan",
     "timestamp": "2026-01-10 08:00:00",
-    "status": "PENDING",
-    "FoodId": 1,
+    "status": "NOT_PASS_YET",
+    "recipeIds": [1, 5, 12],
     "UserId": 1,
+    "groupId": 5,
     "createdAt": "2026-01-02T10:00:00",
-    "updatedAt": null
+    "updatedAt": "2026-01-02T10:00:00"
+  }
+}
+```
+
+**Error Response - User không thuộc group (403):**
+```json
+{
+  "resultCode": "1999",
+  "resultMessage": {
+    "en": "System error: User does not belong to any group",
+    "vn": "Lỗi hệ thống: Người dùng không thuộc nhóm nào"
+  }
+}
+```
+
+**Error Response - Không có quyền (403):**
+```json
+{
+  "resultCode": "1999",
+  "resultMessage": {
+    "en": "System error: Access denied - Only group owner or admin can modify this data",
+    "vn": "Lỗi hệ thống: Truy cập bị từ chối - Chỉ chủ nhóm hoặc admin mới có thể sửa dữ liệu này"
   }
 }
 ```
@@ -85,27 +160,28 @@ Content-Type: application/json
   "name": "Updated Breakfast Plan",
   "timestamp": "2026-01-10 08:30:00",
   "status": "COMPLETED",
-  "foodId": 2
+  "recipeIds": [2, 3, 5]
 }
 ```
 
 **Response Success (200):**
 ```json
 {
-  "resultCode": "00141",
+  "resultCode": "00323",
   "resultMessage": {
-    "en": "Meal updated successfully",
-    "vn": "Cập nhật bữa ăn thành công"
+    "en": "Update meal plan successful",
+    "vn": "Cập nhật kế hoạch bữa ăn thành công"
   },
-  "meal": {
+  "updatedPlan": {
     "id": 1,
     "name": "Updated Breakfast Plan",
     "timestamp": "2026-01-10 08:30:00",
     "status": "COMPLETED",
-    "foodId": 2,
-    "userId": 1,
-    "updatedAt": "2026-01-02T11:00:00",
-    "createdAt": "2026-01-02T10:00:00"
+    "recipeIds": [2, 3, 5],
+    "UserId": 1,
+    "groupId": 5,
+    "createdAt": "2026-01-02T10:00:00",
+    "updatedAt": "2026-01-02T11:00:00"
   }
 }
 ```
@@ -145,10 +221,10 @@ Content-Type: application/json
 **Response Success (200):**
 ```json
 {
-  "resultCode": "00142",
+  "resultCode": "00324",
   "resultMessage": {
-    "en": "Meal deleted successfully",
-    "vn": "Xóa bữa ăn thành công"
+    "en": "Delete meal plan successful",
+    "vn": "Xóa kế hoạch bữa ăn thành công"
   }
 }
 ```
@@ -180,19 +256,20 @@ Authorization: Bearer {accessToken}
 **Response Success (200):**
 ```json
 {
-  "resultCode": "00143",
+  "resultCode": "00325",
   "resultMessage": {
-    "en": "Meals retrieved successfully",
-    "vn": "Lấy danh sách bữa ăn thành công"
+    "en": "Get all meal plans successful",
+    "vn": "Lấy tất cả kế hoạch bữa ăn thành công"
   },
   "meals": [
     {
       "id": 1,
       "name": "Breakfast Plan",
       "timestamp": "2026-01-10 08:00:00",
-      "status": "PENDING",
-      "foodId": 1,
-      "userId": 1,
+      "status": "NOT_PASS_YET",
+      "recipeIds": [1, 5, 12],
+      "UserId": 1,
+      "groupId": 5,
       "createdAt": "2026-01-02T10:00:00",
       "updatedAt": null
     },
@@ -201,8 +278,9 @@ Authorization: Bearer {accessToken}
       "name": "Lunch Plan",
       "timestamp": "2026-01-10 12:00:00",
       "status": "COMPLETED",
-      "foodId": 5,
-      "userId": 1,
+      "recipeIds": [2, 3],
+      "UserId": 1,
+      "groupId": 5,
       "createdAt": "2026-01-02T10:15:00",
       "updatedAt": "2026-01-02T12:30:00"
     },
@@ -210,9 +288,10 @@ Authorization: Bearer {accessToken}
       "id": 3,
       "name": "Dinner Plan",
       "timestamp": "2026-01-10 19:00:00",
-      "status": "PENDING",
-      "foodId": 8,
-      "userId": 1,
+      "status": "NOT_PASS_YET",
+      "recipeIds": [8, 9, 10],
+      "UserId": 1,
+      "groupId": 5,
       "createdAt": "2026-01-02T10:30:00",
       "updatedAt": null
     }
@@ -255,18 +334,19 @@ GET /api/meal/1
 **Response Success (200):**
 ```json
 {
-  "resultCode": "00144",
+  "resultCode": "00326",
   "resultMessage": {
-    "en": "Meal retrieved successfully",
-    "vn": "Lấy thông tin bữa ăn thành công"
+    "en": "Get meal plan details successful",
+    "vn": "Lấy chi tiết kế hoạch bữa ăn thành công"
   },
   "meal": {
     "id": 1,
     "name": "Breakfast Plan",
     "timestamp": "2026-01-10 08:00:00",
-    "status": "PENDING",
-    "foodId": 1,
-    "userId": 1,
+    "status": "NOT_PASS_YET",
+    "recipeIds": [1, 5, 12],
+    "UserId": 1,
+    "groupId": 5,
     "createdAt": "2026-01-02T10:00:00",
     "updatedAt": null
   }
@@ -290,12 +370,11 @@ GET /api/meal/1
 
 | Code | Description (EN) | Description (VN) |
 |------|------------------|------------------|
-| 00140 | Meal created | Tạo bữa ăn thành công |
-| 00141 | Meal updated | Cập nhật bữa ăn thành công |
-| 00142 | Meal deleted | Xóa bữa ăn thành công |
-| 00143 | Meals retrieved | Lấy danh sách bữa ăn thành công |
-| 00144 | Meal retrieved | Lấy thông tin bữa ăn thành công |
-| 1404 | Meal not found | Không tìm thấy bữa ăn |
+| 00322 | Add meal plan successfull | Thêm kế hoạch bữa ăn thành công |
+| 00323 | Update meal plan successful | Cập nhật kế hoạch bữa ăn thành công |
+| 00324 | Delete meal plan successful | Xóa kế hoạch bữa ăn thành công |
+| 00325 | Get all meal plans successful | Lấy tất cả kế hoạch bữa ăn thành công |
+| 00326 | Get meal plan details successful | Lấy chi tiết kế hoạch bữa ăn thành công |
 | 1999 | System error | Lỗi hệ thống |
 
 ---
@@ -304,9 +383,10 @@ GET /api/meal/1
 
 1. **Authentication**: Tất cả endpoints yêu cầu `Authorization: Bearer {accessToken}`
 2. **Status Values**: 
-   - `PENDING`: Bữa ăn chưa hoàn thành
+   - `NOT_PASS_YET`: Bữa ăn chưa hoàn thành
    - `COMPLETED`: Đã hoàn thành
-3. **Food Reference**: Meal chỉ liên kết với 1 food item duy nhất qua `foodId`
+   - `PASSED`: Đã qua thời gian
+3. **Recipe IDs**: Danh sách `recipeIds` chứa IDs của các món ăn (recipes). Mỗi meal có nhiều recipes, mỗi recipe lại có nhiều foods (nguyên liệu)
 4. **Timestamp Format**: "YYYY-MM-DD HH:mm:ss" (ví dụ: "2026-01-10 08:00:00")
-5. **User Context**: Meals thuộc về user cụ thể (userId)
-6. **planId vs mealId**: Update endpoint dùng `planId`, Delete endpoint dùng `mealId`
+5. **Group Context**: Meals thuộc về group cụ thể (groupId), user thường sẽ tự động gán group của mình, admin có thể chọn group bất kỳ
+6. **Response Format**: Response fields bao gồm `UserId` (camelCase U hoa) và `groupId` (lowercase g) - đúng theo implementation

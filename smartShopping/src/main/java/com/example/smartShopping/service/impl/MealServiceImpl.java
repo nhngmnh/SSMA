@@ -11,6 +11,7 @@ import com.example.smartShopping.dto.response.MealUpdateResponse;
 import com.example.smartShopping.entity.Meal;
 import com.example.smartShopping.repository.MealRepository;
 import com.example.smartShopping.service.MealService;
+import com.example.smartShopping.service.AuthorizationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -24,10 +25,28 @@ import java.util.stream.Collectors;
 public class MealServiceImpl implements MealService {
 
     private final MealRepository mealRepository;
+    private final AuthorizationService authService;
 
     @Override
-    public MealResponse createMeal(MealRequest request, Long userId) {
+    public MealResponse createMeal(MealRequest request, Long userId, String authHeader) {
         try {
+            // Xác định groupId
+            Long groupId;
+            
+            // Nếu là admin và đã chọn groupId → dùng groupId đó
+            if (authService.isAdmin(authHeader) && request.getGroupId() != null) {
+                groupId = request.getGroupId();
+                // Validate admin có quyền tạo cho group này
+                authService.requireModifyGroupData(authHeader, groupId);
+            } 
+            // Nếu là thành viên thường → tự động lấy group của user
+            else {
+                groupId = authService.getUserGroupId(userId);
+                if (groupId == null) {
+                    throw new RuntimeException("User does not belong to any group");
+                }
+            }
+
             // Create timestamp in ISO format
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
@@ -36,8 +55,9 @@ public class MealServiceImpl implements MealService {
                     .name(request.getName())
                     .timestamp(request.getTimestamp())
                     .status("NOT_PASS_YET")
-                    .foodId(request.getFoodId())
+                    .recipeIds(request.getRecipeIds()) // Danh sách recipe IDs
                     .userId(userId)
+                    .groupId(groupId)
                     .createdAt(timestamp)
                     .updatedAt(timestamp)
                     .build();
@@ -51,8 +71,9 @@ public class MealServiceImpl implements MealService {
                     .name(savedMeal.getName())
                     .timestamp(savedMeal.getTimestamp())
                     .status(savedMeal.getStatus())
-                    .FoodId(savedMeal.getFoodId())
+                    .recipeIds(savedMeal.getRecipeIds())
                     .UserId(savedMeal.getUserId())
+                    .groupId(savedMeal.getGroupId())
                     .updatedAt(savedMeal.getUpdatedAt())
                     .createdAt(savedMeal.getCreatedAt())
                     .build();
@@ -91,8 +112,8 @@ public class MealServiceImpl implements MealService {
             if (request.getStatus() != null) {
                 meal.setStatus(request.getStatus());
             }
-            if (request.getFoodId() != null) {
-                meal.setFoodId(request.getFoodId());
+            if (request.getRecipeIds() != null) {
+                meal.setRecipeIds(request.getRecipeIds());
             }
 
             meal.setUpdatedAt(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
@@ -103,7 +124,7 @@ public class MealServiceImpl implements MealService {
                     .name(updatedMeal.getName())
                     .timestamp(updatedMeal.getTimestamp())
                     .status(updatedMeal.getStatus())
-                    .FoodId(updatedMeal.getFoodId())
+                    .recipeIds(updatedMeal.getRecipeIds())
                     .UserId(updatedMeal.getUserId())
                     .updatedAt(updatedMeal.getUpdatedAt())
                     .createdAt(updatedMeal.getCreatedAt())
@@ -166,7 +187,7 @@ public class MealServiceImpl implements MealService {
                             .name(meal.getName())
                             .timestamp(meal.getTimestamp())
                             .status(meal.getStatus())
-                            .foodId(meal.getFoodId())
+                            .recipeIds(meal.getRecipeIds())
                             .userId(meal.getUserId())
                             .updatedAt(meal.getUpdatedAt())
                             .createdAt(meal.getCreatedAt())
@@ -204,7 +225,7 @@ public class MealServiceImpl implements MealService {
                     .name(meal.getName())
                     .timestamp(meal.getTimestamp())
                     .status(meal.getStatus())
-                    .foodId(meal.getFoodId())
+                    .recipeIds(meal.getRecipeIds())
                     .userId(meal.getUserId())
                     .updatedAt(meal.getUpdatedAt())
                     .createdAt(meal.getCreatedAt())

@@ -51,4 +51,10 @@ public interface FridgeRepository extends JpaRepository<Fridge, Long> {
     // Lấy 1 item theo foodName và userId (để đảm bảo user chỉ xem đồ của mình)
     List<Fridge> findByFood_NameIgnoreCaseAndUserId(String foodName, Long userId);
 
+    // Lấy theo groupId
+    List<Fridge> findByGroupId(Long groupId);
+
+    // Lấy theo food name và groupId
+    List<Fridge> findByFood_NameIgnoreCaseAndGroupId(String foodName, Long groupId);
+
 }

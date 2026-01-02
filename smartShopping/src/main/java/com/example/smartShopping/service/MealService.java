@@ -10,7 +10,7 @@ import com.example.smartShopping.dto.response.MealResponse;
 import com.example.smartShopping.dto.response.MealUpdateResponse;
 
 public interface MealService {
-    MealResponse createMeal(MealRequest request, Long userId);
+    MealResponse createMeal(MealRequest request, Long userId, String authHeader);
     MealUpdateResponse updateMeal(UpdateMealRequest request);
     MealDeleteResponse deleteMeal(DeleteMealRequest request);
     MealGetAllResponse getAllMeals();

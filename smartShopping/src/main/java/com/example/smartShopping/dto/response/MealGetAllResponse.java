@@ -26,7 +26,7 @@ public class MealGetAllResponse {
         private String name;
         private String timestamp;
         private String status;
-        private Long foodId;
+        private List<Long> recipeIds;
         private Long userId;
         private String updatedAt;
         private String createdAt;

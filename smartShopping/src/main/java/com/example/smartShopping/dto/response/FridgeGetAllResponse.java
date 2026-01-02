@@ -39,5 +39,6 @@ public class FridgeGetAllResponse {
         private String note;
         private String foodName;
         private Long foodId;
+        private Long groupId;
     }
 }

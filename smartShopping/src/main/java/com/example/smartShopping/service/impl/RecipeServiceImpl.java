@@ -30,9 +30,11 @@ public class RecipeServiceImpl implements RecipeService {
     @Override
     public RecipeResponse createRecipe(RecipeRequest request) {
         try {
-            // Validate food exists
-            Food food = foodRepository.findById(request.getFoodId())
-                    .orElseThrow(() -> new RuntimeException("Food not found with id: " + request.getFoodId()));
+            // Validate all foods exist (optional - có thể skip nếu muốn)
+            // for (Long foodId : request.getFoodIds()) {
+            //     foodRepository.findById(foodId)
+            //         .orElseThrow(() -> new RuntimeException("Food not found: " + foodId));
+            // }
 
             // Create timestamp
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
@@ -42,7 +44,7 @@ public class RecipeServiceImpl implements RecipeService {
                     .name(request.getName())
                     .description(request.getDescription())
                     .htmlContent(request.getHtmlContent())
-                    .foodId(request.getFoodId())
+                    .foodIds(request.getFoodIds()) // Danh sách food IDs
                     .createdAt(timestamp)
                     .updatedAt(timestamp)
                     .build();
@@ -50,25 +52,15 @@ public class RecipeServiceImpl implements RecipeService {
             // Save recipe
             Recipe savedRecipe = recipeRepository.save(recipe);
 
-            // Build NewRecipe response with flattened Food fields
+            // Build NewRecipe response
             RecipeResponse.NewRecipe newRecipe = RecipeResponse.NewRecipe.builder()
                     .id(savedRecipe.getId())
                     .name(savedRecipe.getName())
                     .description(savedRecipe.getDescription())
                     .htmlContent(savedRecipe.getHtmlContent())
+                    .foodIds(savedRecipe.getFoodIds())
                     .createdAt(savedRecipe.getCreatedAt())
                     .updatedAt(savedRecipe.getUpdatedAt())
-                    .FoodId(savedRecipe.getFoodId())
-                    // Flattened Food fields with dot notation
-                    .foodDotId(food.getId())
-                    .foodDotName(food.getName())
-                    .foodDotImageUrl(food.getImageUrl())
-                    .foodDotType(food.getType())
-                    .foodDotCreatedAt(food.getCreatedAt())
-                    .foodDotUpdatedAt(food.getUpdatedAt())
-                    .foodDotFoodCategoryId(food.getFoodCategoryId())
-                    .foodDotUserId(food.getUserId())
-                    .foodDotUnitOfMeasurementId(food.getUnitOfMeasurementId())
                     .build();
 
             // Build and return response
@@ -109,11 +101,13 @@ public class RecipeServiceImpl implements RecipeService {
             if (request.getHtmlContent() != null && !request.getHtmlContent().isBlank()) {
                 recipe.setHtmlContent(request.getHtmlContent());
             }
-            if (request.getFoodId() != null) {
-                // Validate food exists
-                Food food = foodRepository.findById(request.getFoodId())
-                        .orElseThrow(() -> new RuntimeException("Food not found with id: " + request.getFoodId()));
-                recipe.setFoodId(request.getFoodId());
+            if (request.getFoodIds() != null) {
+                // Validate foods exist
+                for (Long foodId : request.getFoodIds()) {
+                    foodRepository.findById(foodId)
+                            .orElseThrow(() -> new RuntimeException("Food not found with id: " + foodId));
+                }
+                recipe.setFoodIds(request.getFoodIds());
             }
 
             // Update timestamp
@@ -123,32 +117,16 @@ public class RecipeServiceImpl implements RecipeService {
             // Save recipe
             Recipe updatedRecipe = recipeRepository.save(recipe);
 
-            // Get food details
-            Food food = foodRepository.findById(updatedRecipe.getFoodId())
-                    .orElse(null);
-
             // Build response
-            RecipeUpdateResponse.UpdatedRecipe.UpdatedRecipeBuilder recipeBuilder = RecipeUpdateResponse.UpdatedRecipe.builder()
+            RecipeUpdateResponse.UpdatedRecipe updatedRecipeDto = RecipeUpdateResponse.UpdatedRecipe.builder()
                     .id(updatedRecipe.getId())
                     .name(updatedRecipe.getName())
                     .description(updatedRecipe.getDescription())
                     .htmlContent(updatedRecipe.getHtmlContent())
                     .createdAt(updatedRecipe.getCreatedAt())
                     .updatedAt(updatedRecipe.getUpdatedAt())
-                    .FoodId(updatedRecipe.getFoodId());
-
-            if (food != null) {
-                recipeBuilder
-                        .foodDotId(food.getId())
-                        .foodDotName(food.getName())
-                        .foodDotImageUrl(food.getImageUrl())
-                        .foodDotType(food.getType())
-                        .foodDotCreatedAt(food.getCreatedAt())
-                        .foodDotUpdatedAt(food.getUpdatedAt())
-                        .foodDotFoodCategoryId(food.getFoodCategoryId())
-                        .foodDotUserId(food.getUserId())
-                        .foodDotUnitOfMeasurementId(food.getUnitOfMeasurementId());
-            }
+                    .foodIds(updatedRecipe.getFoodIds())
+                    .build();
 
             return RecipeUpdateResponse.builder()
                     .resultCode("00358")
@@ -156,7 +134,7 @@ public class RecipeServiceImpl implements RecipeService {
                             .en("Update recipe successful")
                             .vn("Cập nhật công thức nấu ăn thành công")
                             .build())
-                    .updatedRecipe(recipeBuilder.build())
+                    .updatedRecipe(updatedRecipeDto)
                     .build();
 
         } catch (RuntimeException e) {
@@ -199,7 +177,7 @@ public class RecipeServiceImpl implements RecipeService {
     @Override
     public GetRecipesResponse getRecipesByFoodId(Long foodId) {
         try {
-            List<Recipe> recipes = recipeRepository.findByFoodId(foodId);
+            List<Recipe> recipes = recipeRepository.findByFoodIdContained(foodId);
             
             List<GetRecipesResponse.RecipeDto> recipeDtos = recipes.stream()
                     .map(recipe -> GetRecipesResponse.RecipeDto.builder()
@@ -209,7 +187,7 @@ public class RecipeServiceImpl implements RecipeService {
                             .htmlContent(recipe.getHtmlContent())
                             .createdAt(recipe.getCreatedAt())
                             .updatedAt(recipe.getUpdatedAt())
-                            .FoodId(recipe.getFoodId())
+                            .foodIds(recipe.getFoodIds())
                             .build())
                     .collect(Collectors.toList());
 

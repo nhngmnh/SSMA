@@ -5,6 +5,7 @@ import com.example.smartShopping.dto.request.UpdateFridgeRequest;
 import com.example.smartShopping.dto.response.ApiResponse;
 import com.example.smartShopping.dto.response.FridgeResponse;
 import com.example.smartShopping.service.FridgeService;
+import com.example.smartShopping.service.AuthorizationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,13 +20,16 @@ import java.util.Map;
 public class FridgeController {
 
     private final FridgeService fridgeService;
+    private final AuthorizationService authService;
 
     @PostMapping
     public Object createFridge(
-            @ModelAttribute CreateFridgeRequest request
+            @ModelAttribute CreateFridgeRequest request,
+            @RequestHeader("Authorization") String authHeader
     ) {
         try {
-            return org.springframework.http.ResponseEntity.ok(fridgeService.createFridge(request));
+            Long userId = authService.getUserIdFromAuth(authHeader);
+            return org.springframework.http.ResponseEntity.ok(fridgeService.createFridge(request, userId, authHeader));
         } catch (Exception e) {
             Map<String, Object> errorResponse = new LinkedHashMap<>();
             Map<String, String> resultMessage = new LinkedHashMap<>();
@@ -38,10 +42,11 @@ public class FridgeController {
     }
     @PutMapping
     public Object updateFridge(
-            @ModelAttribute UpdateFridgeRequest request
+            @ModelAttribute UpdateFridgeRequest request,
+            @RequestHeader("Authorization") String authHeader
     ) {
         try {
-            return org.springframework.http.ResponseEntity.ok(fridgeService.updateFridge(request));
+            return org.springframework.http.ResponseEntity.ok(fridgeService.updateFridge(request, authHeader));
         } catch (Exception e) {
             Map<String, Object> errorResponse = new LinkedHashMap<>();
             Map<String, String> resultMessage = new LinkedHashMap<>();
@@ -53,9 +58,12 @@ public class FridgeController {
         }
     }
     @DeleteMapping
-    public Object deleteFridgeItem(@RequestParam String foodName) {
+    public Object deleteFridgeItem(
+            @RequestParam String foodName,
+            @RequestHeader("Authorization") String authHeader
+    ) {
         try {
-            fridgeService.deleteFridgeItem(foodName);
+            fridgeService.deleteFridgeItem(foodName, authHeader);
             return org.springframework.http.ResponseEntity.ok().build();
         } catch (Exception e) {
             Map<String, Object> errorResponse = new LinkedHashMap<>();
@@ -68,9 +76,10 @@ public class FridgeController {
         }
     }
     @GetMapping
-    public Object getAllFridgeItems() {
+    public Object getAllFridgeItems(@RequestHeader("Authorization") String authHeader) {
         try {
-            return org.springframework.http.ResponseEntity.ok(fridgeService.getAllFridgeItems());
+            Long userId = authService.getUserIdFromAuth(authHeader);
+            return org.springframework.http.ResponseEntity.ok(fridgeService.getAllFridgeItems(userId, authHeader));
         } catch (Exception e) {
             Map<String, Object> errorResponse = new LinkedHashMap<>();
             Map<String, String> resultMessage = new LinkedHashMap<>();
@@ -82,9 +91,13 @@ public class FridgeController {
         }
     }
     @GetMapping("/{foodName}")
-    public Object getFridgeItem(@PathVariable String foodName) {
+    public Object getFridgeItem(
+            @PathVariable String foodName,
+            @RequestHeader("Authorization") String authHeader
+    ) {
         try {
-            return org.springframework.http.ResponseEntity.ok(fridgeService.getFridgeItemsByFoodName(foodName));
+            Long userId = authService.getUserIdFromAuth(authHeader);
+            return org.springframework.http.ResponseEntity.ok(fridgeService.getFridgeItemsByFoodName(foodName, userId, authHeader));
         } catch (Exception e) {
             Map<String, Object> errorResponse = new LinkedHashMap<>();
             Map<String, String> resultMessage = new LinkedHashMap<>();

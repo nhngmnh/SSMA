@@ -38,6 +38,9 @@ public class Fridge {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @Column(name = "group_id")
+    private Long groupId;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 
