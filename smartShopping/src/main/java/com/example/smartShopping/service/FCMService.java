@@ -50,7 +50,7 @@ public class FCMService {
     /**
      * Gửi notification đến nhiều devices
      */
-    public void sendMulticastNotification(List<String> fcmTokens, String title, String body, Map<String, String> data) {
+    public int sendMulticastNotification(List<String> fcmTokens, String title, String body, Map<String, String> data) {
         try {
             // Build notification
             Notification notification = Notification.builder()
@@ -86,6 +86,8 @@ public class FCMService {
                     }
                 }
             }
+            
+            return response.getSuccessCount();
             
         } catch (FirebaseMessagingException e) {
             log.error("Failed to send multicast FCM notification", e);

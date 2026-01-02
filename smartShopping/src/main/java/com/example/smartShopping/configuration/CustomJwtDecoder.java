@@ -8,7 +8,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.oauth2.jwt.JwtValidationException;
 
-import com.example.smartShopping.repository.InvalidTokenRepository;
+import com.example.smartShopping.repository.TokenRepository;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -16,11 +16,11 @@ import java.util.Date;
 
 public class CustomJwtDecoder implements JwtDecoder {
     private final String secret;
-    private final InvalidTokenRepository invalidTokenRepository;
+    private final TokenRepository tokenRepository;
 
-    public CustomJwtDecoder(String secret, InvalidTokenRepository invalidTokenRepository) {
+    public CustomJwtDecoder(String secret, TokenRepository tokenRepository) {
         this.secret = secret;
-        this.invalidTokenRepository = invalidTokenRepository;
+        this.tokenRepository = tokenRepository;
     }
 
     @Override
@@ -44,7 +44,7 @@ public class CustomJwtDecoder implements JwtDecoder {
         }
         // Check invalidated token
         String randomId = claims.get("randomId", String.class);
-        if (randomId != null && invalidTokenRepository.existsById(randomId)) {
+        if (randomId != null && tokenRepository.existsById(Long.parseLong(randomId))) {
             throw new JwtValidationException("Token has been invalidated (logout or expired)", Collections.emptyList());
         }
         // Build Jwt object with original headers

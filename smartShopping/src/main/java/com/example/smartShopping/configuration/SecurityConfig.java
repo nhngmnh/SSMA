@@ -26,6 +26,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/**").permitAll() // Allow all /api endpoints without authentication
                         .requestMatchers("/user/logout/**").permitAll() // Cho phép logout không cần auth
+                        .requestMatchers("/test/**").permitAll() // Cho phép test endpoints
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

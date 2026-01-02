@@ -239,7 +239,7 @@ public class AuthService {
                 existingToken.setFcmToken(fcmToken);
             }
             existingToken.setLastUsedAt(LocalDateTime.now());
-            existingToken.setExpiresAt(LocalDateTime.now().plusMillis(jwtProvider.getAccessExpiration()));
+            existingToken.setExpiresAt(LocalDateTime.now().plus(java.time.Duration.ofMillis(jwtProvider.getAccessExpiration())));
             tokenRepo.save(existingToken);
             log.info("Updated token for userId: {}, deviceId: {}", userId, deviceId);
         } else {
@@ -251,7 +251,7 @@ public class AuthService {
                     .refreshToken(refreshToken)
                     .fcmToken(fcmToken)
                     .createdAt(LocalDateTime.now())
-                    .expiresAt(LocalDateTime.now().plusMillis(jwtProvider.getAccessExpiration()))
+                    .expiresAt(LocalDateTime.now().plus(java.time.Duration.ofMillis(jwtProvider.getAccessExpiration())))
                     .lastUsedAt(LocalDateTime.now())
                     .isActive(true)
                     .build();

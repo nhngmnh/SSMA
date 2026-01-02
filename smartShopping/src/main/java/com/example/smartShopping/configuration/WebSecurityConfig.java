@@ -8,7 +8,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 
-import com.example.smartShopping.repository.InvalidTokenRepository;
+import com.example.smartShopping.repository.TokenRepository;
 
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -35,8 +35,8 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    public JwtDecoder jwtDecoder(InvalidTokenRepository invalidTokenRepository) {
-        return new CustomJwtDecoder(jwtSecret, invalidTokenRepository);
+    public JwtDecoder jwtDecoder(TokenRepository tokenRepository) {
+        return new CustomJwtDecoder(jwtSecret, tokenRepository);
     }
     
     @Bean
