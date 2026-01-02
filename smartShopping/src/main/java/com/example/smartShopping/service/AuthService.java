@@ -179,11 +179,7 @@ public class AuthService {
     }
 
     public String getEmailFromToken(String token) {
-        Claims claims = Jwts.parser()
-                .setSigningKey(jwtProvider.getSecret())
-                .parseClaimsJws(token)
-                .getBody();
-        return claims.getSubject();
+        return jwtProvider.getEmailFromToken(token);
     }
 
     public String generateAccessTokenFromEmail(String email) {

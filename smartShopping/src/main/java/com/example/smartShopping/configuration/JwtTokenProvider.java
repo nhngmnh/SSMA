@@ -16,13 +16,16 @@ public class JwtTokenProvider {
     @Value("${jwt.refresh-expiration}")
     private Long refreshExpiration;
 
-//    public Long getUserIdFromToken(String token) {
-//        Claims claims = Jwts.parser()
-//                .setSigningKey(jwtSecret)
-//                .parseClaimsJws(token)
-//                .getBody();
-//        return claims.get("userId", Long.class);
-//    }
+    /**
+     * Lấy userId từ JWT token
+     */
+    public Long getUserIdFromToken(String token) {
+        Claims claims = Jwts.parser()
+                .setSigningKey(jwtSecret)
+                .parseClaimsJws(token)
+                .getBody();
+        return claims.get("userId", Long.class);
+    }
 
 
     public String generateAccessToken(Long userId, String email) {

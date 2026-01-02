@@ -11,13 +11,11 @@ import com.example.smartShopping.configuration.JwtTokenProvider;
 import com.example.smartShopping.service.UnitService;
 import com.example.smartShopping.service.CategoryService;
 import com.example.smartShopping.repository.UserRepository;
+import com.example.smartShopping.util.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
 
 @RestController
 @RequestMapping("/api/food")
@@ -29,6 +27,7 @@ public class FoodController {
     private final CategoryService categoryService; // thêm service unit
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
+    private final JwtUtils jwtUtils;
 
     @PostMapping
     public Object createFood(
@@ -47,7 +46,7 @@ public class FoodController {
                 return ResponseEntity.status(403).body(errorResponse);
             }
             
-            Long userId = extractUserIdFromToken(authHeader);
+            Long userId = jwtUtils.extractUserIdFromHeader(authHeader);
             return ResponseEntity.ok(foodService.createFood(req, userId));
         } catch (Exception e) {
             e.printStackTrace(); // xem stacktrace ở console
@@ -60,33 +59,13 @@ public class FoodController {
 
 
 
-    private Long extractUserIdFromToken(String header) {
-        if (header == null || !header.startsWith("Bearer ")) {
-            throw new RuntimeException("Missing or invalid Authorization header");
-        }
-
-        String token = header.substring(7); // bỏ "Bearer "
-        
-        String secret = jwtTokenProvider.getSecret();
-        System.out.println("[JWT Verify] Secret key: " + secret);
-        System.out.println("[JWT Verify] Secret key length: " + secret.length());
-        System.out.println("[JWT Verify] Token to verify: " + token);
-
-        Claims claims = Jwts.parser()
-                .setSigningKey(secret) // lấy secret từ provider
-                .parseClaimsJws(token)
-                .getBody();
-
-        return claims.get("userId", Long.class);
-    }
-
     @PutMapping
     public Object updateFood(
             @ModelAttribute UpdateFoodRequest req,
             @RequestHeader("Authorization") String authHeader
     ) {
         try {
-            Long userId = extractUserIdFromToken(authHeader);
+            Long userId = jwtUtils.extractUserIdFromHeader(authHeader);
             return ResponseEntity.ok(foodService.updateFood(req, userId));
         } catch (Exception e) {
             e.printStackTrace();
@@ -104,7 +83,7 @@ public class FoodController {
             @RequestHeader("Authorization") String authHeader
     ) {
         try {
-            Long UserId = extractUserIdFromToken(authHeader);
+            Long UserId = jwtUtils.extractUserIdFromHeader(authHeader);
             return ResponseEntity.ok(foodService.deleteFood(name, UserId));
         } catch (Exception e) {
             e.printStackTrace();

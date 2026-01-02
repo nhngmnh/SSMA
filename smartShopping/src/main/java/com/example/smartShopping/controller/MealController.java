@@ -1,6 +1,5 @@
 package com.example.smartShopping.controller;
 
-import com.example.smartShopping.configuration.JwtTokenProvider;
 import com.example.smartShopping.dto.request.DeleteMealRequest;
 import com.example.smartShopping.dto.request.MealRequest;
 import com.example.smartShopping.dto.request.UpdateMealRequest;
@@ -10,8 +9,7 @@ import com.example.smartShopping.dto.response.MealGetAllResponse;
 import com.example.smartShopping.dto.response.MealResponse;
 import com.example.smartShopping.dto.response.MealUpdateResponse;
 import com.example.smartShopping.service.MealService;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
+import com.example.smartShopping.util.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +23,7 @@ import java.util.Map;
 public class MealController {
 
     private final MealService mealService;
-    private final JwtTokenProvider jwtTokenProvider;
+    private final JwtUtils jwtUtils;
 
     @PostMapping
     public ResponseEntity<MealResponse> createMeal(
@@ -33,7 +31,7 @@ public class MealController {
             @RequestHeader("Authorization") String authHeader
     ) {
         try {
-            Long userId = extractUserIdFromToken(authHeader);
+            Long userId = jwtUtils.extractUserIdFromHeader(authHeader);
             MealResponse response = mealService.createMeal(request, userId, authHeader);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -122,19 +120,4 @@ public class MealController {
         }
     }
 
-    private Long extractUserIdFromToken(String header) {
-        if (header == null || !header.startsWith("Bearer ")) {
-            throw new RuntimeException("Missing or invalid Authorization header");
-        }
-
-        String token = header.substring(7);
-        String secret = jwtTokenProvider.getSecret();
-
-        Claims claims = Jwts.parser()
-                .setSigningKey(secret)
-                .parseClaimsJws(token)
-                .getBody();
-
-        return claims.get("userId", Long.class);
-    }
 }

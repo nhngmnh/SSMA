@@ -5,6 +5,7 @@ import com.example.smartShopping.entity.GroupEntity;
 import com.example.smartShopping.entity.User;
 import com.example.smartShopping.repository.GroupRepository;
 import com.example.smartShopping.repository.UserRepository;
+import com.example.smartShopping.util.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,7 @@ public class AuthorizationService {
     private final UserRepository userRepository;
     private final GroupRepository groupRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    private final JwtUtils jwtUtils;
 
     /**
      * Lấy User từ Authorization header
@@ -30,7 +32,7 @@ public class AuthorizationService {
      * Lấy userId từ Authorization header
      */
     public Long getUserIdFromAuth(String authHeader) {
-        return getUserFromAuth(authHeader).getUserId();
+        return jwtUtils.extractUserIdFromHeader(authHeader);
     }
 
     /**
