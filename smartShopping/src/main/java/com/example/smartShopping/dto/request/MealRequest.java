@@ -1,5 +1,6 @@
 package com.example.smartShopping.dto.request;
 
+import com.example.smartShopping.dto.MealFoodItemDto;
 import lombok.*;
 import java.util.List;
 
@@ -9,6 +10,6 @@ import java.util.List;
 public class MealRequest {
     private String name;
     private String timestamp;
-    private List<Long> recipeIds; // Danh sách recipe IDs (nhiều món trong 1 bữa ăn)
+    private List<MealFoodItemDto> foodItems; // Danh sách foods với quantity
     private Long groupId; // Optional - chỉ admin mới có thể chọn, thành viên thường sẽ auto-assign
 }

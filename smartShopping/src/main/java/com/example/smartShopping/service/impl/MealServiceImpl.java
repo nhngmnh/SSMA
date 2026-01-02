@@ -1,5 +1,6 @@
 package com.example.smartShopping.service.impl;
 
+import com.example.smartShopping.dto.MealFoodItemDto;
 import com.example.smartShopping.dto.request.DeleteMealRequest;
 import com.example.smartShopping.dto.request.MealRequest;
 import com.example.smartShopping.dto.request.UpdateMealRequest;
@@ -55,7 +56,7 @@ public class MealServiceImpl implements MealService {
                     .name(request.getName())
                     .timestamp(request.getTimestamp())
                     .status("NOT_PASS_YET")
-                    .recipeIds(request.getRecipeIds()) // Danh sách recipe IDs
+                    .foodItems(MealFoodItemDto.toEntities(request.getFoodItems())) // Convert DTO to entity
                     .userId(userId)
                     .groupId(groupId)
                     .createdAt(timestamp)
@@ -71,7 +72,7 @@ public class MealServiceImpl implements MealService {
                     .name(savedMeal.getName())
                     .timestamp(savedMeal.getTimestamp())
                     .status(savedMeal.getStatus())
-                    .recipeIds(savedMeal.getRecipeIds())
+                    .foodItems(MealFoodItemDto.fromEntities(savedMeal.getFoodItems())) // Convert entity to DTO
                     .UserId(savedMeal.getUserId())
                     .groupId(savedMeal.getGroupId())
                     .updatedAt(savedMeal.getUpdatedAt())
@@ -112,8 +113,8 @@ public class MealServiceImpl implements MealService {
             if (request.getStatus() != null) {
                 meal.setStatus(request.getStatus());
             }
-            if (request.getRecipeIds() != null) {
-                meal.setRecipeIds(request.getRecipeIds());
+            if (request.getFoodItems() != null) {
+                meal.setFoodItems(MealFoodItemDto.toEntities(request.getFoodItems()));
             }
 
             meal.setUpdatedAt(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
@@ -124,7 +125,7 @@ public class MealServiceImpl implements MealService {
                     .name(updatedMeal.getName())
                     .timestamp(updatedMeal.getTimestamp())
                     .status(updatedMeal.getStatus())
-                    .recipeIds(updatedMeal.getRecipeIds())
+                    .foodItems(MealFoodItemDto.fromEntities(updatedMeal.getFoodItems()))
                     .UserId(updatedMeal.getUserId())
                     .updatedAt(updatedMeal.getUpdatedAt())
                     .createdAt(updatedMeal.getCreatedAt())
@@ -187,7 +188,7 @@ public class MealServiceImpl implements MealService {
                             .name(meal.getName())
                             .timestamp(meal.getTimestamp())
                             .status(meal.getStatus())
-                            .recipeIds(meal.getRecipeIds())
+                            .foodItems(MealFoodItemDto.fromEntities(meal.getFoodItems()))
                             .userId(meal.getUserId())
                             .updatedAt(meal.getUpdatedAt())
                             .createdAt(meal.getCreatedAt())
@@ -225,7 +226,7 @@ public class MealServiceImpl implements MealService {
                     .name(meal.getName())
                     .timestamp(meal.getTimestamp())
                     .status(meal.getStatus())
-                    .recipeIds(meal.getRecipeIds())
+                    .foodItems(MealFoodItemDto.fromEntities(meal.getFoodItems()))
                     .userId(meal.getUserId())
                     .updatedAt(meal.getUpdatedAt())
                     .createdAt(meal.getCreatedAt())

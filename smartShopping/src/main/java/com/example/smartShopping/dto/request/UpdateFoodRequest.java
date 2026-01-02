@@ -20,4 +20,10 @@ public class UpdateFoodRequest {
 
     private Long groupId;
 
+    private Double price;
+
+    private Double quantity;
+
+    private String expirationDate;
+
 }

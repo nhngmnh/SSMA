@@ -34,6 +34,9 @@ public class FoodUpdateResponse {
         private String name;
         private String imageUrl;
         private String type;
+        private Double price;
+        private Double quantity;
+        private String expirationDate;
         private String createdAt;
         private String updatedAt;
         private Long FoodCategoryId;

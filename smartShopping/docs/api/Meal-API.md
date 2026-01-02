@@ -6,21 +6,27 @@ Base URL: `/api/meal`
 
 ### Structure Overview:
 ```
-Meal (Bữa ăn) - 1 meal có nhiều món
-  ├── Recipe 1 (Món canh)
-  │   ├── Food 1: Thịt heo
-  │   ├── Food 2: Rau cải
-  │   └── Food 3: Hành
-  ├── Recipe 2 (Món chiên)
-  │   ├── Food 4: Cá
-  │   └── Food 5: Dầu ăn
-  └── Recipe 3 (Món rau)
+Meal (Bữa ăn) - 1 meal chứa nhiều food với quantity
+  ├── Food 1: Thịt heo (500g)
+  ├── Food 2: Rau cải (200g)
+  ├── Food 3: Hành (50g)
+  ├── Food 4: Cá (300g)
+  └── Food 5: Dầu ăn (2 muỗng)
 ```
 
+**Note:** Meal plan là danh sách mua sắm (shopping list) chứa các food với số lượng, KHÔNG phải danh sách công thức nấu ăn (recipes).
+
 ### Data Storage:
-- **Meal.recipeIds**: JSON array `[1, 2, 3]` - Danh sách recipe IDs
-- **Recipe.foodIds**: JSON array `[10, 20, 30]` - Danh sách food IDs (nguyên liệu)
-- Không dùng quan hệ JPA, xử lý trong logic service
+- **Meal.foodItems**: JSON array chứa objects:
+```json
+[
+  {"foodId": 10, "quantity": 500, "unitName": "g"},
+  {"foodId": 20, "quantity": 200, "unitName": "g"},
+  {"foodId": 30, "quantity": 50, "unitName": "g"}
+]
+```
+- **Recipe.foodIds**: JSON array `[10, 20, 30]` - Danh sách food IDs (công thức nấu ăn)
+- Meal plan dùng để mua sắm, Recipe dùng để nấu ăn
 
 ### Group Assignment Rules:
 1. **Thành viên thường (Regular Users)**:
@@ -66,11 +72,15 @@ Content-Type: application/json
 {
   "name": "Breakfast Plan",
   "timestamp": "2026-01-10 08:00:00",
-  "recipeIds": [1, 5, 12]
+  "foodItems": [
+    {"foodId": 1, "quantity": 500, "unitName": "g"},
+    {"foodId": 5, "quantity": 200, "unitName": "g"},
+    {"foodId": 12, "quantity": 3, "unitName": "quả"}
+  ]
 }
 ```
 *Note: 
-- `recipeIds`: Danh sách recipe IDs (nhiều món trong 1 bữa ăn)
+- `foodItems`: Danh sách foods với quantity (shopping list)
 - `groupId` sẽ tự động được gán từ group của user*
 
 **Request Body (Admin - Optional groupId):**
@@ -78,7 +88,11 @@ Content-Type: application/json
 {
   "name": "Breakfast Plan",
   "timestamp": "2026-01-10 08:00:00",
-  "recipeIds": [1, 5, 12],
+  "foodItems": [
+    {"foodId": 1, "quantity": 500, "unitName": "g"},
+    {"foodId": 5, "quantity": 200, "unitName": "g"},
+    {"foodId": 12, "quantity": 3, "unitName": "quả"}
+  ],
   "groupId": 5
 }
 ```
@@ -89,7 +103,11 @@ Content-Type: application/json
 {
   "resultCode": "00322",
   "resultMessage": {
-    "en": "Add meal plan successfull",
+    "foodItems": [
+      {"foodId": 1, "quantity": 500, "unitName": "g"},
+      {"foodId": 5, "quantity": 200, "unitName": "g"},
+      {"foodId": 12, "quantity": 3, "unitName": "quả"}
+    uccessfull",
     "vn": "Thêm kế hoạch bữa ăn thành công"
   },
   "newPlan": {
@@ -156,7 +174,11 @@ Content-Type: application/json
 **Request Body:**
 ```json
 {
-  "planId": 1,
+  "foodItems": [
+    {"foodId": 2, "quantity": 300, "unitName": "g"},
+    {"foodId": 3, "quantity": 150, "unitName": "g"},
+    {"foodId": 5, "quantity": 200, "unitName": "g"}
+  
   "name": "Updated Breakfast Plan",
   "timestamp": "2026-01-10 08:30:00",
   "status": "COMPLETED",
@@ -173,7 +195,11 @@ Content-Type: application/json
     "vn": "Cập nhật kế hoạch bữa ăn thành công"
   },
   "updatedPlan": {
-    "id": 1,
+    "foodItems": [
+      {"foodId": 2, "quantity": 300, "unitName": "g"},
+      {"foodId": 3, "quantity": 150, "unitName": "g"},
+      {"foodId": 5, "quantity": 200, "unitName": "g"}
+    
     "name": "Updated Breakfast Plan",
     "timestamp": "2026-01-10 08:30:00",
     "status": "COMPLETED",
@@ -267,9 +293,12 @@ Authorization: Bearer {accessToken}
       "name": "Breakfast Plan",
       "timestamp": "2026-01-10 08:00:00",
       "status": "NOT_PASS_YET",
-      "recipeIds": [1, 5, 12],
-      "UserId": 1,
-      "groupId": 5,
+      "foodItems": [
+        {"foodId": 1, "quantity": 500, "unitName": "g"},
+        {"foodId": 5, "quantity": 200, "unitName": "g"},
+        {"foodId": 12, "quantity": 3, "unitName": "quả"}
+      ],
+      "userId": 1,
       "createdAt": "2026-01-02T10:00:00",
       "updatedAt": null
     },
@@ -278,9 +307,11 @@ Authorization: Bearer {accessToken}
       "name": "Lunch Plan",
       "timestamp": "2026-01-10 12:00:00",
       "status": "COMPLETED",
-      "recipeIds": [2, 3],
-      "UserId": 1,
-      "groupId": 5,
+      "foodItems": [
+        {"foodId": 2, "quantity": 300, "unitName": "g"},
+        {"foodId": 3, "quantity": 150, "unitName": "g"}
+      ],
+      "userId": 1,
       "createdAt": "2026-01-02T10:15:00",
       "updatedAt": "2026-01-02T12:30:00"
     },
@@ -289,9 +320,12 @@ Authorization: Bearer {accessToken}
       "name": "Dinner Plan",
       "timestamp": "2026-01-10 19:00:00",
       "status": "NOT_PASS_YET",
-      "recipeIds": [8, 9, 10],
-      "UserId": 1,
-      "groupId": 5,
+      "foodItems": [
+        {"foodId": 8, "quantity": 400, "unitName": "g"},
+        {"foodId": 9, "quantity": 100, "unitName": "g"},
+        {"foodId": 10, "quantity": 50, "unitName": "g"}
+      ],
+      "userId": 1,
       "createdAt": "2026-01-02T10:30:00",
       "updatedAt": null
     }
@@ -344,9 +378,12 @@ GET /api/meal/1
     "name": "Breakfast Plan",
     "timestamp": "2026-01-10 08:00:00",
     "status": "NOT_PASS_YET",
-    "recipeIds": [1, 5, 12],
-    "UserId": 1,
-    "groupId": 5,
+    "foodItems": [
+      {"foodId": 1, "quantity": 500, "unitName": "g"},
+      {"foodId": 5, "quantity": 200, "unitName": "g"},
+      {"foodId": 12, "quantity": 3, "unitName": "quả"}
+    ],
+    "userId": 1,
     "createdAt": "2026-01-02T10:00:00",
     "updatedAt": null
   }

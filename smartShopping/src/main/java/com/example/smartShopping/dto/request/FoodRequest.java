@@ -11,5 +11,8 @@ public class FoodRequest {
     private String foodCategoryName;
     private String unitName;
     private Long groupId;
+    private Double price;
+    private Double quantity;
+    private String expirationDate;
 }
 

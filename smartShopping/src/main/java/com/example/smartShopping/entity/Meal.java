@@ -24,11 +24,11 @@ public class Meal {
 
     private String status;
 
-    // Danh sách recipe IDs (nhiều món trong 1 bữa ăn)
+    // Danh sách foods với quantity (mua thực phẩm cho bữa ăn)
     @Type(JsonBinaryType.class)
-    @Column(name = "recipe_ids", columnDefinition = "jsonb")
+    @Column(name = "food_items", columnDefinition = "jsonb")
     @Builder.Default
-    private List<Long> recipeIds = new ArrayList<>();
+    private List<MealFoodItem> foodItems = new ArrayList<>();
 
     @Column(name = "user_id")
     private Long userId;

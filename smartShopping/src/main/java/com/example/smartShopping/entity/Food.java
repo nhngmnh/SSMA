@@ -31,7 +31,16 @@ public class Food {
 
     private String imageUrl;
 
-    private String type;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type")
+    private FoodType type;
+
+    private Double price; // Giá mỗi đơn vị
+
+    private Double quantity; // Số lượng tồn kho
+
+    @Column(name = "expiration_date")
+    private String expirationDate; // Ngày hết hạn (ISO format)
 
     @Column(nullable = false, updatable = false)
     private String createdAt;

@@ -10,6 +10,7 @@ import com.example.smartShopping.dto.response.FoodResponse;
 import com.example.smartShopping.dto.response.FoodUpdateResponse;
 import com.example.smartShopping.entity.Category;
 import com.example.smartShopping.entity.Food;
+import com.example.smartShopping.entity.FoodType;
 import com.example.smartShopping.entity.Unit;
 import com.example.smartShopping.repository.CategoryRepository;
 import com.example.smartShopping.repository.FoodRepository;
@@ -47,8 +48,11 @@ public class FoodServiceImpl implements FoodService {
                 .unitOfMeasurementId( mapUnit(req.getUnitName()) )
                 .userId(userId)
                 .groupId(req.getGroupId())
-                .type("ingredient")
+                .type(FoodType.OTHER)  // Default type, có thể customize sau
                 .imageUrl(imageUrl)
+                .price(req.getPrice())
+                .quantity(req.getQuantity())
+                .expirationDate(req.getExpirationDate())
                 .createdAt(LocalDateTime.now().toString())
                 .updatedAt(LocalDateTime.now().toString())
                 .build();
@@ -64,12 +68,15 @@ public class FoodServiceImpl implements FoodService {
                         new FoodResponse.NewFood(
                                 food.getId(),
                                 food.getName(),
-                                food.getType(),
+                                food.getType().getDisplayName(),
                                 food.getImageUrl(),
                                 food.getUnitOfMeasurementId(),
                                 food.getFoodCategoryId(),
                                 food.getUserId(),
                                 food.getGroupId(),
+                                food.getPrice(),
+                                food.getQuantity(),
+                                food.getExpirationDate(),
                                 food.getCreatedAt(),
                                 food.getUpdatedAt()
                         )
@@ -119,6 +126,18 @@ public class FoodServiceImpl implements FoodService {
             food.setImageUrl(req.getImageUrl());
         }
 
+        if (req.getPrice() != null) {
+            food.setPrice(req.getPrice());
+        }
+
+        if (req.getQuantity() != null) {
+            food.setQuantity(req.getQuantity());
+        }
+
+        if (req.getExpirationDate() != null && !req.getExpirationDate().isBlank()) {
+            food.setExpirationDate(req.getExpirationDate());
+        }
+
         food.setUpdatedAt(LocalDateTime.now().toString());
         foodRepository.save(food);
 
@@ -130,7 +149,10 @@ public class FoodServiceImpl implements FoodService {
                                 .id(food.getId())
                                 .name(food.getName())
                                 .imageUrl(food.getImageUrl())
-                                .type(food.getType())
+                                .type(food.getType().getDisplayName())
+                                .price(food.getPrice())
+                                .quantity(food.getQuantity())
+                                .expirationDate(food.getExpirationDate())
                                 .createdAt(food.getCreatedAt())
                                 .updatedAt(food.getUpdatedAt())
                                 .FoodCategoryId(food.getFoodCategoryId())
@@ -168,13 +190,14 @@ public class FoodServiceImpl implements FoodService {
                 .map(food -> new FoodResponse.NewFood(
                         food.getId(),
                         food.getName(),
-                        food.getType(),
+                        food.getType().getDisplayName(),
                         food.getImageUrl(),
                         food.getUnitOfMeasurementId(),
                         food.getFoodCategoryId(),
                         food.getUserId(),
-                        food.getGroupId(),
-                        food.getCreatedAt(),
+                        food.getGroupId(),                        food.getPrice(),
+                        food.getQuantity(),
+                        food.getExpirationDate(),                        food.getCreatedAt(),
                         food.getUpdatedAt()
                 ))
                 .toList();
@@ -197,12 +220,15 @@ public class FoodServiceImpl implements FoodService {
         FoodResponse.NewFood foodData = new FoodResponse.NewFood(
                 food.getId(),
                 food.getName(),
-                food.getType(),
+                food.getType().getDisplayName(),
                 food.getImageUrl(),
                 food.getUnitOfMeasurementId(),
                 food.getFoodCategoryId(),
                 food.getUserId(),
                 food.getGroupId(),
+                food.getPrice(),
+                food.getQuantity(),
+                food.getExpirationDate(),
                 food.getCreatedAt(),
                 food.getUpdatedAt()
         );
@@ -225,12 +251,15 @@ public class FoodServiceImpl implements FoodService {
                 .map(food -> new FoodResponse.NewFood(
                         food.getId(),
                         food.getName(),
-                        food.getType(),
+                        food.getType().getDisplayName(),
                         food.getImageUrl(),
                         food.getUnitOfMeasurementId(),
                         food.getFoodCategoryId(),
                         food.getUserId(),
                         food.getGroupId(),
+                        food.getPrice(),
+                        food.getQuantity(),
+                        food.getExpirationDate(),
                         food.getCreatedAt(),
                         food.getUpdatedAt()
                 ))
@@ -254,12 +283,15 @@ public class FoodServiceImpl implements FoodService {
                 .map(food -> new FoodResponse.NewFood(
                         food.getId(),
                         food.getName(),
-                        food.getType(),
+                        food.getType().getDisplayName(),
                         food.getImageUrl(),
                         food.getUnitOfMeasurementId(),
                         food.getFoodCategoryId(),
                         food.getUserId(),
                         food.getGroupId(),
+                        food.getPrice(),
+                        food.getQuantity(),
+                        food.getExpirationDate(),
                         food.getCreatedAt(),
                         food.getUpdatedAt()
                 ))

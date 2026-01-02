@@ -35,6 +35,9 @@ public class FoodResponse {
         private Long FoodCategoryId;
         private Long UserId;
         private Long groupId;
+        private Double price;
+        private Double quantity;
+        private String expirationDate;
         private String createdAt;
         private String updatedAt;
 
@@ -44,7 +47,8 @@ public class FoodResponse {
         // Nếu Lombok không tự generate constructor, thêm thủ công:
         public NewFood(Long id, String name, String type, String imageUrl,
                        Long UnitOfMeasurementId, Long FoodCategoryId, Long UserId,
-                       Long groupId, String createdAt, String updatedAt) {
+                       Long groupId, Double price, Double quantity, String expirationDate,
+                       String createdAt, String updatedAt) {
             this.id = id;
             this.name = name;
             this.type = type;
@@ -53,6 +57,9 @@ public class FoodResponse {
             this.FoodCategoryId = FoodCategoryId;
             this.UserId = UserId;
             this.groupId = groupId;
+            this.price = price;
+            this.quantity = quantity;
+            this.expirationDate = expirationDate;
             this.createdAt = createdAt;
             this.updatedAt = updatedAt;
         }
@@ -65,12 +72,15 @@ public class FoodResponse {
                 .map(food -> NewFood.builder()
                         .id(food.getId())
                         .name(food.getName())
-                        .type(food.getType())
+                        .type(food.getType().getDisplayName())
                         .imageUrl(food.getImageUrl())
                         .UnitOfMeasurementId(food.getUnitOfMeasurementId())
                         .FoodCategoryId(food.getFoodCategoryId())
                         .UserId(food.getUserId())
                         .groupId(food.getGroupId())
+                        .price(food.getPrice())
+                        .quantity(food.getQuantity())
+                        .expirationDate(food.getExpirationDate())
                         .createdAt(food.getCreatedAt())
                         .updatedAt(food.getUpdatedAt())
                         .build())
@@ -86,11 +96,14 @@ public class FoodResponse {
         return NewFood.builder()
                 .id(food.getId())
                 .name(food.getName())
-                .type(food.getType())
+                .type(food.getType().getDisplayName())
                 .imageUrl(food.getImageUrl())
                 .FoodCategoryId(food.getFoodCategoryId())
                 .UserId(food.getUserId())
                 .groupId(food.getGroupId())
+                .price(food.getPrice())
+                .quantity(food.getQuantity())
+                .expirationDate(food.getExpirationDate())
                 .UnitOfMeasurementId(food.getUnitOfMeasurementId())
                 // .FoodCategory(CategoryResponse.toDto(food.getFoodCategory())) // Food entity doesn't have these relationships
                 // .unitOfMeasurement(UnitResponse.toDto(food.getUnitOfMeasurement())) // Only IDs are stored

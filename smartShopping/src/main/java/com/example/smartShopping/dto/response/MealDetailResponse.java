@@ -1,5 +1,6 @@
 package com.example.smartShopping.dto.response;
 
+import com.example.smartShopping.dto.MealFoodItemDto;
 import lombok.*;
 import java.util.List;
 
@@ -25,7 +26,7 @@ public class MealDetailResponse {
         private String name;
         private String timestamp;
         private String status;
-        private List<Long> recipeIds;
+        private List<MealFoodItemDto> foodItems;
         private Long userId;
         private String updatedAt;
         private String createdAt;
