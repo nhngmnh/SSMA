@@ -25,8 +25,7 @@ public class FridgeController {
             @ModelAttribute CreateFridgeRequest request
     ) {
         try {
-            FridgeResponse response = fridgeService.createFridge(request);
-            return org.springframework.http.ResponseEntity.ok(response);
+            return org.springframework.http.ResponseEntity.ok(fridgeService.createFridge(request));
         } catch (Exception e) {
             Map<String, Object> errorResponse = new LinkedHashMap<>();
             Map<String, String> resultMessage = new LinkedHashMap<>();
@@ -42,8 +41,7 @@ public class FridgeController {
             @ModelAttribute UpdateFridgeRequest request
     ) {
         try {
-            FridgeResponse response = fridgeService.updateFridge(request);
-            return org.springframework.http.ResponseEntity.ok(response);
+            return org.springframework.http.ResponseEntity.ok(fridgeService.updateFridge(request));
         } catch (Exception e) {
             Map<String, Object> errorResponse = new LinkedHashMap<>();
             Map<String, String> resultMessage = new LinkedHashMap<>();
@@ -72,8 +70,7 @@ public class FridgeController {
     @GetMapping
     public Object getAllFridgeItems() {
         try {
-            List<FridgeResponse> fridgeItems = fridgeService.getAllFridgeItems();
-            return org.springframework.http.ResponseEntity.ok(fridgeItems);
+            return org.springframework.http.ResponseEntity.ok(fridgeService.getAllFridgeItems());
         } catch (Exception e) {
             Map<String, Object> errorResponse = new LinkedHashMap<>();
             Map<String, String> resultMessage = new LinkedHashMap<>();
@@ -87,8 +84,7 @@ public class FridgeController {
     @GetMapping("/{foodName}")
     public Object getFridgeItem(@PathVariable String foodName) {
         try {
-            List<FridgeResponse> response = fridgeService.getFridgeItemsByFoodName(foodName);
-            return org.springframework.http.ResponseEntity.ok(response);
+            return org.springframework.http.ResponseEntity.ok(fridgeService.getFridgeItemsByFoodName(foodName));
         } catch (Exception e) {
             Map<String, Object> errorResponse = new LinkedHashMap<>();
             Map<String, String> resultMessage = new LinkedHashMap<>();

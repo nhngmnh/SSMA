@@ -1,5 +1,6 @@
 package com.example.smartShopping.configuration;
 
+import com.example.smartShopping.repository.TokenRepository;
 import com.example.smartShopping.service.impl.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -22,6 +23,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtProvider;
     private final CustomUserDetailsService userDetailsService;
+    private final TokenRepository tokenRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -36,6 +38,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         String token = header.substring(7);
+        
+        // Kiểm tra token có tồn tại và active trong Token table không
+        boolean tokenExists = tokenRepository.findByAccessTokenAndIsActive(token, true).isPresent();
+        if (!tokenExists) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\":\"Token has been invalidated or expired\",\"code\":\"40010\"}");
+            return;
+        }
+        
         if (!jwtProvider.validateToken(token)) {
             filterChain.doFilter(request, response);
             return;

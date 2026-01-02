@@ -10,5 +10,6 @@ public class FoodRequest {
     private String name;
     private String foodCategoryName;
     private String unitName;
+    private Long groupId;
 }
 

@@ -1,11 +1,15 @@
 package com.example.smartShopping.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
 public class VerifyEmailRequest {
-    private String code;   // Mã xác thực do người dùng nhập
-    private String token;  // JWT token được gửi kèm link xác minh
+    @JsonProperty("verificationCode")
+    private String code;   // Mã xác thực 6 chữ số
+    
+    @JsonProperty("confirmToken")
+    private String token;  // JWT token nhận được từ register response
 
     public String getEmail() {
         return "";

@@ -117,22 +117,94 @@ public class FoodController {
                     .build());
         }
     }
+
+    @GetMapping("/{id}")
+    public Object getFoodById(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(foodService.getFoodById(id));
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(404).body(FoodResponse.builder()
+                    .resultCode("1404")
+                    .resultMessage(new FoodResponse.ResultMessage("Không tìm thấy thực phẩm", "Food not found"))
+                    .build());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(FoodResponse.builder()
+                    .resultCode("1999")
+                    .resultMessage(new FoodResponse.ResultMessage("Lỗi hệ thống", "System error"))
+                    .build());
+        }
+    }
+
+    @GetMapping("/search")
+    public Object searchFoods(@RequestParam String keyword) {
+        try {
+            return ResponseEntity.ok(foodService.searchFoods(keyword));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(FoodResponse.builder()
+                    .resultCode("1999")
+                    .resultMessage(new FoodResponse.ResultMessage("Lỗi hệ thống", "System error"))
+                    .build());
+        }
+    }
+
+    @GetMapping("/group/{groupId}")
+    public Object getFoodsByGroupId(@PathVariable Long groupId) {
+        try {
+            return ResponseEntity.ok(foodService.getFoodsByGroupId(groupId));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(FoodResponse.builder()
+                    .resultCode("1999")
+                    .resultMessage(new FoodResponse.ResultMessage("Lỗi hệ thống", "System error"))
+                    .build());
+        }
+    }
+
     @GetMapping("/unit")
-    public ResponseEntity<ApiResponse> getAllUnitsFood(
-            @RequestParam(required = false) String unitName) {
-        ApiResponse response = unitService.getAllUnits(unitName);
-        return ResponseEntity.ok(response);
+    public Object getAllUnitsFood(@RequestParam(required = false) String unitName) {
+        try {
+            UnitResponse response = unitService.getAllUnits(unitName);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            java.util.Map<String, Object> errorResponse = new java.util.LinkedHashMap<>();
+            java.util.Map<String, String> resultMessage = new java.util.LinkedHashMap<>();
+            resultMessage.put("en", "System error: " + e.getMessage());
+            resultMessage.put("vn", "Lỗi hệ thống: " + e.getMessage());
+            errorResponse.put("resultMessage", resultMessage);
+            errorResponse.put("resultCode", "1999");
+            return ResponseEntity.status(500).body(errorResponse);
+        }
     }
 
     @GetMapping("/category")
-    public ResponseEntity<ApiResponse> getAllCategoriesFood() {
-        CategoryResponse data = categoryService.getAllCategoriesFood();
-        return ResponseEntity.ok(ApiResponse.builder()
-                .success(true)
-                .message("Lấy danh sách category thành công")
-                .code(129) // resultCode: 00129
-                .data(data)
-                .build());
+    public Object getAllCategoriesFood() {
+        try {
+            CategoryResponse data = categoryService.getAllCategoriesFood();
+            
+            java.util.Map<String, Object> response = new java.util.LinkedHashMap<>();
+            java.util.Map<String, String> resultMessage = new java.util.LinkedHashMap<>();
+            resultMessage.put("en", "Categories retrieved successfully");
+            resultMessage.put("vn", "Lấy danh sách category thành công");
+            
+            response.put("resultMessage", resultMessage);
+            response.put("resultCode", "00129");
+            response.put("categories", data.getCategories());
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            java.util.Map<String, Object> errorResponse = new java.util.LinkedHashMap<>();
+            java.util.Map<String, String> resultMessage = new java.util.LinkedHashMap<>();
+            resultMessage.put("en", "System error: " + e.getMessage());
+            resultMessage.put("vn", "Lỗi hệ thống: " + e.getMessage());
+            errorResponse.put("resultMessage", resultMessage);
+            errorResponse.put("resultCode", "1999");
+            return ResponseEntity.status(500).body(errorResponse);
+        }
     }
 
 }

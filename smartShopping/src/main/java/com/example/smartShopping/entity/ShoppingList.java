@@ -9,8 +9,6 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Getter
@@ -27,18 +25,17 @@ public class ShoppingList {
 
     private LocalDate date;
 
-    // admin tạo list
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
+    
+    @Column(name = "user_id")
+    private Long userId;
 
-    // người được giao đi mua
-    @ManyToOne
-    @JoinColumn(name = "assigned_to_user_id")
-    private User assignedToUser;
+    
+    @Column(name = "assigned_to_user_id")
+    private Long assignedToUserId;
 
     // trưởng nhóm
-    @Getter(onMethod_=@JsonProperty("belongsToGroupAdmin"))
+    @JsonProperty("belongsToGroupAdmin")
+    @Column(name = "belongs_to_group_admin_id")
     private Long belongsToGroupAdminId;
 
     @CreationTimestamp
@@ -46,13 +43,5 @@ public class ShoppingList {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
-
-    // ✅ THÊM CÁI NÀY
-    @OneToMany(
-            mappedBy = "shoppingList",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
-    private List<ShoppingTask> details = new ArrayList<>();
 
 }

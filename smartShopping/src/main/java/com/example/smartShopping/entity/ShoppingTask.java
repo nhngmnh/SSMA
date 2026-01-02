@@ -25,13 +25,11 @@ public class ShoppingTask {
     @Column(nullable = false)
     private Boolean completed = false;
 
-    // ====== RELATION ======
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "shopping_list_id", nullable = false)
-    private ShoppingList shoppingList;
+    // Chỉ lưu ID, không có ràng buộc khóa ngoại
+    @Column(name = "shopping_list_id", nullable = false)
+    private Long shoppingListId;
 
-    @ManyToOne
-    @JoinColumn(name = "food_id")
-    private Food food;
+    @Column(name = "food_id")
+    private Long foodId;
 
 }

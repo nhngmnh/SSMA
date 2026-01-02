@@ -2,17 +2,17 @@ package com.example.smartShopping.service;
 
 import com.example.smartShopping.dto.request.CreateFridgeRequest;
 import com.example.smartShopping.dto.request.UpdateFridgeRequest;
-import com.example.smartShopping.dto.response.FridgeResponse;
-
-import java.util.List;
+import com.example.smartShopping.dto.response.FridgeCreateResponse;
+import com.example.smartShopping.dto.response.FridgeUpdateResponse;
+import com.example.smartShopping.dto.response.FridgeDeleteResponse;
+import com.example.smartShopping.dto.response.FridgeGetAllResponse;
 
 public interface FridgeService {
 
-    FridgeResponse createFridge(CreateFridgeRequest request);
-    FridgeResponse updateFridge(UpdateFridgeRequest request);
-    void deleteFridgeItem(String foodName);
-    // Lấy tất cả fridge items của user
-    List<FridgeResponse> getAllFridgeItems();
-    List<FridgeResponse> getFridgeItemsByFoodName(String foodName);
+    FridgeCreateResponse createFridge(CreateFridgeRequest request);
+    FridgeUpdateResponse updateFridge(UpdateFridgeRequest request);
+    FridgeDeleteResponse deleteFridgeItem(String foodName);
+    FridgeGetAllResponse getAllFridgeItems();
+    FridgeGetAllResponse getFridgeItemsByFoodName(String foodName);
 
 }

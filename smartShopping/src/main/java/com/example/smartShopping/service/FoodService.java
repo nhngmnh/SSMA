@@ -14,4 +14,7 @@ public interface FoodService {
     FoodDeleteResponse deleteFood(String name, Long userId);
 
     FoodResponse getAllFoods();
+    FoodResponse getFoodById(Long id);
+    FoodResponse searchFoods(String keyword);
+    FoodResponse getFoodsByGroupId(Long groupId);
 }

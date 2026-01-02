@@ -1,7 +1,7 @@
 package com.example.smartShopping.service.impl;
 
 import com.example.smartShopping.dto.request.CreateShoppingTasksRequest;
-import com.example.smartShopping.dto.response.ShoppingListResponse;
+import com.example.smartShopping.dto.response.ShoppingTaskCreateResponse;
 import com.example.smartShopping.entity.Food;
 import com.example.smartShopping.entity.ShoppingList;
 import com.example.smartShopping.entity.ShoppingTask;
@@ -19,44 +19,57 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ShoppingTaskServiceImpl implements ShoppingTaskService {
 
-
     private final ShoppingListRepository shoppingListRepository;
     private final UserRepository userRepository;
     private final ShoppingTaskRepository taskRepository;
     private final FoodRepository foodRepository;
 
     @Override
-    public void createTasks(CreateShoppingTasksRequest request, String username) {
+    public ShoppingTaskCreateResponse createTasks(CreateShoppingTasksRequest request, String username) {
+        try {
+            User creator = userRepository.findByEmail(username)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
 
-        User creator = userRepository.findByEmail(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+            ShoppingList list = shoppingListRepository.findById(request.getListId())
+                    .orElseThrow(() -> new RuntimeException("Shopping list not found"));
 
-        ShoppingList list = shoppingListRepository.findById(request.getListId())
-                .orElseThrow(() -> new RuntimeException("Shopping list not found"));
+            if (!list.getUserId().equals(creator.getId())) {
+                throw new RuntimeException("Only creator can add tasks");
+            }
 
-        // 🔐 chỉ người tạo list được thêm task
-        if (!list.getUser().getId().equals(creator.getId())) {
-            throw new RuntimeException("Only creator can add tasks");
+            List<ShoppingTask> tasks = request.getTasks().stream()
+                    .map(t -> {
+                        Food food = foodRepository.findByNameIgnoreCase(t.getFoodName())
+                                .orElseThrow(() -> new RuntimeException("Food not found: " + t.getFoodName()));
+
+                        return ShoppingTask.builder()
+                                .foodId(food.getId())
+                                .foodName(food.getName())
+                                .quantity(t.getQuantity())
+                                .completed(false)
+                                .shoppingListId(list.getId())
+                                .build();
+                    })
+                    .toList();
+
+            taskRepository.saveAll(tasks);
+
+            return ShoppingTaskCreateResponse.builder()
+                    .resultCode("00172")
+                    .resultMessage(ShoppingTaskCreateResponse.ResultMessage.builder()
+                            .en("Shopping tasks created successfully")
+                            .vn("Tạo các nhiệm vụ mua sắm thành công")
+                            .build())
+                    .build();
+
+        } catch (RuntimeException e) {
+            return ShoppingTaskCreateResponse.builder()
+                    .resultCode("1999")
+                    .resultMessage(ShoppingTaskCreateResponse.ResultMessage.builder()
+                            .en("System error: " + e.getMessage())
+                            .vn("Lỗi hệ thống: " + e.getMessage())
+                            .build())
+                    .build();
         }
-
-        List<ShoppingTask> tasks = request.getTasks().stream()
-                .map(t -> {
-                    Food food = foodRepository.findByNameIgnoreCase(t.getFoodName())
-                            .orElseThrow(() -> new RuntimeException("Food not found: " + t.getFoodName()));
-
-                    return ShoppingTask.builder()
-                            .food(food) // map Food entity
-                            .foodName(food.getName()) // vẫn lưu tên nếu cần
-                            .quantity(t.getQuantity())
-                            .completed(false)
-                            .shoppingList(list)
-                            .build();
-                })
-                .toList();
-
-
-        taskRepository.saveAll(tasks);
     }
-
-
 }

@@ -11,8 +11,7 @@ import java.util.List;
 public interface ShoppingListRepository extends JpaRepository<ShoppingList, Long> {
 
     @Query("""
-        SELECT DISTINCT l FROM ShoppingList l
-        LEFT JOIN FETCH l.details
+        SELECT l FROM ShoppingList l
     """)
     List<ShoppingList> findAllWithTasks();
 }

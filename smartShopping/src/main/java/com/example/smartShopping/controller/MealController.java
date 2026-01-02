@@ -5,6 +5,8 @@ import com.example.smartShopping.dto.request.DeleteMealRequest;
 import com.example.smartShopping.dto.request.MealRequest;
 import com.example.smartShopping.dto.request.UpdateMealRequest;
 import com.example.smartShopping.dto.response.MealDeleteResponse;
+import com.example.smartShopping.dto.response.MealDetailResponse;
+import com.example.smartShopping.dto.response.MealGetAllResponse;
 import com.example.smartShopping.dto.response.MealResponse;
 import com.example.smartShopping.dto.response.MealUpdateResponse;
 import com.example.smartShopping.service.MealService;
@@ -13,6 +15,9 @@ import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/meal")
@@ -80,6 +85,40 @@ public class MealController {
                                     .build())
                             .build()
             );
+        }
+    }
+
+    @GetMapping
+    public Object getAllMeals() {
+        try {
+            MealGetAllResponse response = mealService.getAllMeals();
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Map<String, Object> errorResponse = new LinkedHashMap<>();
+            Map<String, String> resultMessage = new LinkedHashMap<>();
+            resultMessage.put("en", "System error: " + e.getMessage());
+            resultMessage.put("vn", "Lỗi hệ thống: " + e.getMessage());
+            errorResponse.put("resultMessage", resultMessage);
+            errorResponse.put("resultCode", "1999");
+            return ResponseEntity.status(500).body(errorResponse);
+        }
+    }
+
+    @GetMapping("/{id}")
+    public Object getMealById(@PathVariable Long id) {
+        try {
+            MealDetailResponse response = mealService.getMealById(id);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Map<String, Object> errorResponse = new LinkedHashMap<>();
+            Map<String, String> resultMessage = new LinkedHashMap<>();
+            resultMessage.put("en", "System error: " + e.getMessage());
+            resultMessage.put("vn", "Lỗi hệ thống: " + e.getMessage());
+            errorResponse.put("resultMessage", resultMessage);
+            errorResponse.put("resultCode", "1999");
+            return ResponseEntity.status(500).body(errorResponse);
         }
     }
 

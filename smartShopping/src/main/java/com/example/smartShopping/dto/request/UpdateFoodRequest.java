@@ -18,4 +18,6 @@ public class UpdateFoodRequest {
 
     private String imageUrl;       // link URL
 
+    private Long groupId;
+
 }

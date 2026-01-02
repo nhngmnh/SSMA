@@ -3,7 +3,9 @@ package com.example.smartShopping.service;
 import com.example.smartShopping.dto.request.*;
 import com.example.smartShopping.dto.response.*;
 import com.example.smartShopping.entity.User;
+import com.example.smartShopping.entity.Token;
 import com.example.smartShopping.repository.UserRepository;
+import com.example.smartShopping.repository.TokenRepository;
 import com.example.smartShopping.configuration.JwtTokenProvider;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -22,48 +24,127 @@ import java.util.Random;
 public class AuthService {
 
     private final UserRepository userRepo;
+    private final TokenRepository tokenRepo;
     private final PasswordEncoder encoder;
     private final JwtTokenProvider jwtProvider;
+    private final EmailService emailService;
 
     public RegisterResponse register(RegisterRequest req) {
-        if (userRepo.existsByEmail(req.getEmail()))
-            throw new RuntimeException("Email đã tồn tại");
-        log.info("check emailok");
+        // Kiểm tra xem email đã tồn tại chưa
+        User existingUser = userRepo.findByEmail(req.getEmail()).orElse(null);
+        
+        // Nếu user đã tồn tại VÀ đã verify -> không cho đăng ký lại
+        if (existingUser != null && existingUser.getIsVerified()) {
+            throw new RuntimeException("Email đã được đăng ký và xác thực");
+        }
+        
+        // Nếu user đã tồn tại NHƯNG chưa verify -> cho phép gửi lại mã
+        if (existingUser != null && !existingUser.getIsVerified()) {
+            log.info("User exists but not verified. Resending verification code to: {}", req.getEmail());
+            
+            // Tạo verification code mới
+            String verificationCode = String.valueOf(100000 + new Random().nextInt(900000));
+            
+            // Cập nhật thông tin user
+            existingUser.setVerificationCode(verificationCode);
+            existingUser.setVerificationExpiresAt(LocalDateTime.now().plusMinutes(10));
+            existingUser.setPasswordHash(encoder.encode(req.getPassword())); // Cập nhật password mới
+            existingUser.setName(req.getName());
+            existingUser.setUsername(req.getUsername());
+            
+            userRepo.save(existingUser);
+            log.info("Updated existing user and resent verification code: {}", existingUser.getEmail());
+            
+            // Gửi email verification
+            try {
+                emailService.sendVerificationEmail(existingUser.getEmail(), existingUser.getUsername(), verificationCode);
+                log.info("Verification email resent to: {}", existingUser.getEmail());
+            } catch (Exception e) {
+                log.error("Failed to resend verification email", e);
+            }
+            
+            // Tạo confirm token
+            String confirmToken = jwtProvider.generateVerificationToken(existingUser.getEmail(), verificationCode);
+            
+            return RegisterResponse.builder()
+                    .resultCode("00035")
+                    .resultMessageEn("Verification code resent. Please check your email.")
+                    .resultMessageVn("Mã xác thực đã được gửi lại. Vui lòng kiểm tra email.")
+                    .user(existingUser)
+                    .confirmToken(confirmToken)
+                    .build();
+        }
+        
+        // User mới -> tạo mới
+        log.info("Creating new user with email: {}", req.getEmail());
+        
+        // Tạo verification code 6 số
+        String verificationCode = String.valueOf(100000 + new Random().nextInt(900000));
+        
         User user = User.builder()
                 .name(req.getName())
                 .email(req.getEmail())
                 .username(req.getUsername())
                 .passwordHash(encoder.encode(req.getPassword()))
-                .verificationCode(String.valueOf(100000 + new Random().nextInt(900000)))
+                .verificationCode(verificationCode)
                 .verificationExpiresAt(LocalDateTime.now().plusMinutes(10))
                 .isVerified(false)
                 .isAdmin(false)
                 .isActive(true)
                 .build();
-        log.info("check userok");
+        
         userRepo.save(user);
-        log.info("check user save ok");
-        String confirmToken = jwtProvider.generateVerificationToken(user.getEmail(), user.getVerificationCode());
-        log.info("confirm token save ok");
+        log.info("User saved successfully: {}", user.getEmail());
+        
+        // Gửi email verification
+        try {
+            emailService.sendVerificationEmail(user.getEmail(), user.getUsername(), verificationCode);
+            log.info("Verification email sent to: {}", user.getEmail());
+        } catch (Exception e) {
+            log.error("Failed to send verification email", e);
+            // Không throw exception - vẫn cho phép đăng ký thành công
+            // User có thể request gửi lại code sau
+        }
+        
+        // Tạo confirm token (không chứa code để bảo mật)
+        String confirmToken = jwtProvider.generateVerificationToken(user.getEmail(), verificationCode);
+        
         return RegisterResponse.builder()
                 .resultCode("00035")
-                .resultMessageEn("You registered successfully.")
-                .resultMessageVn("Bạn đã đăng ký thành công.")
+                .resultMessageEn("You registered successfully. Please check your email for verification code.")
+                .resultMessageVn("Bạn đã đăng ký thành công. Vui lòng kiểm tra email để lấy mã xác thực.")
                 .user(user)
                 .confirmToken(confirmToken)
                 .build();
     }
 
     public String sendVerificationCode(String email) {
-        // 1. Sinh mã xác thực (ví dụ 6 chữ số)
-        String code = String.valueOf(new Random().nextInt(900000) + 100000);
-
-        // 2. Tạo confirm token (JWT chứa email + code)
-        String confirmToken = jwtProvider.generateVerificationToken(email, code); // tự viết method tạo JWT
-
-        // 3. Gửi email (nếu muốn) - có thể dùng JavaMailSender
-
-        return confirmToken;
+        try {
+            // Kiểm tra user tồn tại
+            User user = userRepo.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Email không tồn tại"));
+            
+            // Tạo mã xác thực mới
+            String code = String.valueOf(new Random().nextInt(900000) + 100000);
+            
+            // Cập nhật code và thời gian hết hạn
+            user.setVerificationCode(code);
+            user.setVerificationExpiresAt(LocalDateTime.now().plusMinutes(10));
+            userRepo.save(user);
+            
+            // Gửi email
+            emailService.sendVerificationEmail(email, user.getUsername(), code);
+            log.info("Verification code sent to: {}", email);
+            
+            // Tạo confirm token
+            String confirmToken = jwtProvider.generateVerificationToken(email, code);
+            
+            return confirmToken;
+            
+        } catch (Exception e) {
+            log.error("Failed to send verification code to: {}", email, e);
+            throw new RuntimeException("Failed to send verification code", e);
+        }
     }
 
     public boolean verifyEmail(String code, String token) {
@@ -144,9 +225,53 @@ public class AuthService {
         return "Đổi mật khẩu thành công";
     }
 
+    // ===================== SAVE/UPDATE TOKEN =====================
+    public void saveOrUpdateToken(Long userId, String deviceId, String accessToken, String refreshToken, String fcmToken) {
+        // Tìm token hiện tại của user trên device này
+        Token existingToken = tokenRepo.findByUserIdAndDeviceIdAndIsActive(userId, deviceId, true)
+                .orElse(null);
+        
+        if (existingToken != null) {
+            // Update token cũ
+            existingToken.setAccessToken(accessToken);
+            existingToken.setRefreshToken(refreshToken);
+            if (fcmToken != null) {
+                existingToken.setFcmToken(fcmToken);
+            }
+            existingToken.setLastUsedAt(LocalDateTime.now());
+            existingToken.setExpiresAt(LocalDateTime.now().plusMillis(jwtProvider.getAccessExpiration()));
+            tokenRepo.save(existingToken);
+            log.info("Updated token for userId: {}, deviceId: {}", userId, deviceId);
+        } else {
+            // Tạo token mới
+            Token newToken = Token.builder()
+                    .userId(userId)
+                    .deviceId(deviceId)
+                    .accessToken(accessToken)
+                    .refreshToken(refreshToken)
+                    .fcmToken(fcmToken)
+                    .createdAt(LocalDateTime.now())
+                    .expiresAt(LocalDateTime.now().plusMillis(jwtProvider.getAccessExpiration()))
+                    .lastUsedAt(LocalDateTime.now())
+                    .isActive(true)
+                    .build();
+            tokenRepo.save(newToken);
+            log.info("Created new token for userId: {}, deviceId: {}", userId, deviceId);
+        }
+    }
 
-    public void logout() {
+    // ===================== LOGOUT =====================
+    public void logout(Long userId, String deviceId) {
+        // Invalidate token của device này
+        tokenRepo.invalidateByUserIdAndDeviceId(userId, deviceId);
+        log.info("Logged out userId: {}, deviceId: {}", userId, deviceId);
+    }
 
+    // ===================== LOGOUT ALL DEVICES =====================
+    public void logoutAllDevices(Long userId) {
+        // Invalidate tất cả token của user
+        tokenRepo.invalidateAllByUserId(userId);
+        log.info("Logged out all devices for userId: {}", userId);
     }
 
     public LoginResponse login(LoginRequest req) {
@@ -191,17 +316,103 @@ public class AuthService {
             throw new RuntimeException("Mật khẩu không đúng");
         }
 
-        // 3️⃣ Kiểm tra user còn active không
+        // 3️⃣ Kiểm tra email đã được verify chưa
+        if (!user.getIsVerified()) {
+            throw new RuntimeException("Email chưa được xác thực");
+        }
+
+        // 4️⃣ Kiểm tra user còn active không
         if (!user.getIsActive()) {
             throw new RuntimeException("Tài khoản bị khóa");
         }
 
-        // 4️⃣ Cập nhật lastLogin (nếu muốn)
+        // 5️⃣ Cập nhật lastLogin (nếu muốn)
         user.setLastLogin(LocalDateTime.now());
         userRepo.save(user);
 
-        // 5️⃣ Trả về user để tạo token
+        // 6️⃣ Trả về user để tạo token
         return user;
+    }
+
+    // ===================== FORGOT PASSWORD =====================
+    public Map<String, Object> forgotPassword(String email) {
+        // Kiểm tra email có tồn tại không
+        User user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Email không tồn tại"));
+        
+        // Kiểm tra tài khoản đã verify chưa
+        if (!user.getIsVerified()) {
+            throw new RuntimeException("Tài khoản chưa được xác thực. Vui lòng xác thực email trước.");
+        }
+        
+        // Tạo mã reset 6 số
+        String resetCode = String.valueOf(100000 + new Random().nextInt(900000));
+        
+        // Lưu reset code vào database (dùng lại field verificationCode)
+        user.setVerificationCode(resetCode);
+        user.setVerificationExpiresAt(LocalDateTime.now().plusMinutes(10));
+        userRepo.save(user);
+        
+        log.info("Reset code generated for user: {}", email);
+        
+        // Gửi email chứa reset code
+        try {
+            emailService.sendPasswordResetEmail(email, user.getUsername(), resetCode);
+            log.info("Password reset email sent to: {}", email);
+        } catch (Exception e) {
+            log.error("Failed to send password reset email", e);
+            throw new RuntimeException("Không thể gửi email. Vui lòng thử lại sau.");
+        }
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("resultMessage", Map.of(
+            "en", "Password reset code sent to your email",
+            "vn", "Mã đặt lại mật khẩu đã được gửi đến email của bạn"
+        ));
+        response.put("resultCode", "00050");
+        response.put("email", email);
+        
+        return response;
+    }
+
+    // ===================== RESET PASSWORD =====================
+    public Map<String, Object> resetPassword(String email, String resetCode, String newPassword) {
+        // Kiểm tra user có tồn tại không
+        User user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Email không tồn tại"));
+        
+        // Kiểm tra reset code có đúng không
+        if (!resetCode.equals(user.getVerificationCode())) {
+            throw new RuntimeException("Mã đặt lại mật khẩu không đúng");
+        }
+        
+        // Kiểm tra reset code có hết hạn không
+        if (user.getVerificationExpiresAt() == null || 
+            user.getVerificationExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Mã đặt lại mật khẩu đã hết hạn");
+        }
+        
+        // Cập nhật password mới
+        user.setPasswordHash(encoder.encode(newPassword));
+        user.setVerificationCode(null); // Xóa reset code sau khi dùng
+        user.setVerificationExpiresAt(null);
+        userRepo.save(user);
+        
+        log.info("Password reset successfully for user: {}", email);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("resultMessage", Map.of(
+            "en", "Password reset successfully. You can now login with your new password",
+            "vn", "Đặt lại mật khẩu thành công. Bạn có thể đăng nhập bằng mật khẩu mới"
+        ));
+        response.put("resultCode", "00051");
+        
+        return response;
+    }
+
+    // ===================== GETTER =====================
+    public TokenRepository getTokenRepository() {
+        return tokenRepo;
     }
 
 }

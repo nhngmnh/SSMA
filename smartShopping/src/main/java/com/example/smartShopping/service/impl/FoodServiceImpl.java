@@ -46,6 +46,7 @@ public class FoodServiceImpl implements FoodService {
                 .foodCategoryId( mapCategory(req.getFoodCategoryName()) )
                 .unitOfMeasurementId( mapUnit(req.getUnitName()) )
                 .userId(userId)
+                .groupId(req.getGroupId())
                 .type("ingredient")
                 .imageUrl(imageUrl)
                 .createdAt(LocalDateTime.now().toString())
@@ -68,6 +69,7 @@ public class FoodServiceImpl implements FoodService {
                                 food.getUnitOfMeasurementId(),
                                 food.getFoodCategoryId(),
                                 food.getUserId(),
+                                food.getGroupId(),
                                 food.getCreatedAt(),
                                 food.getUpdatedAt()
                         )
@@ -108,6 +110,10 @@ public class FoodServiceImpl implements FoodService {
             food.setUnitOfMeasurementId(mapUnit(req.getNewUnit()));
         }
 
+        if (req.getGroupId() != null) {
+            food.setGroupId(req.getGroupId());
+        }
+
         // Update image bằng URL
         if (req.getImageUrl() != null && !req.getImageUrl().isBlank()) {
             food.setImageUrl(req.getImageUrl());
@@ -129,6 +135,7 @@ public class FoodServiceImpl implements FoodService {
                                 .updatedAt(food.getUpdatedAt())
                                 .FoodCategoryId(food.getFoodCategoryId())
                                 .UserId(food.getUserId())
+                                .groupId(food.getGroupId())
                                 .UnitOfMeasurementId(food.getUnitOfMeasurementId())
                                 .build()
                 ).build();
@@ -166,6 +173,7 @@ public class FoodServiceImpl implements FoodService {
                         food.getUnitOfMeasurementId(),
                         food.getFoodCategoryId(),
                         food.getUserId(),
+                        food.getGroupId(),
                         food.getCreatedAt(),
                         food.getUpdatedAt()
                 ))
@@ -176,6 +184,92 @@ public class FoodServiceImpl implements FoodService {
                 .resultMessage(new FoodResponse.ResultMessage(
                         "Successfull retrieve all foods",
                         "Lấy danh sách thực phẩm thành công"
+                ))
+                .foods(foodList)
+                .build();
+    }
+
+    @Override
+    public FoodResponse getFoodById(Long id) {
+        Food food = foodRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Food not found with id: " + id));
+
+        FoodResponse.NewFood foodData = new FoodResponse.NewFood(
+                food.getId(),
+                food.getName(),
+                food.getType(),
+                food.getImageUrl(),
+                food.getUnitOfMeasurementId(),
+                food.getFoodCategoryId(),
+                food.getUserId(),
+                food.getGroupId(),
+                food.getCreatedAt(),
+                food.getUpdatedAt()
+        );
+
+        return FoodResponse.builder()
+                .resultCode("00190")
+                .resultMessage(new FoodResponse.ResultMessage(
+                        "Successfully retrieved food details",
+                        "Lấy thông tin thực phẩm thành công"
+                ))
+                .newFood(foodData)
+                .build();
+    }
+
+    @Override
+    public FoodResponse searchFoods(String keyword) {
+        List<Food> foods = foodRepository.findByNameContainingIgnoreCase(keyword);
+
+        List<FoodResponse.NewFood> foodList = foods.stream()
+                .map(food -> new FoodResponse.NewFood(
+                        food.getId(),
+                        food.getName(),
+                        food.getType(),
+                        food.getImageUrl(),
+                        food.getUnitOfMeasurementId(),
+                        food.getFoodCategoryId(),
+                        food.getUserId(),
+                        food.getGroupId(),
+                        food.getCreatedAt(),
+                        food.getUpdatedAt()
+                ))
+                .toList();
+
+        return FoodResponse.builder()
+                .resultCode("00192")
+                .resultMessage(new FoodResponse.ResultMessage(
+                        "Successfully searched foods",
+                        "Tìm kiếm thực phẩm thành công"
+                ))
+                .foods(foodList)
+                .build();
+    }
+
+    @Override
+    public FoodResponse getFoodsByGroupId(Long groupId) {
+        List<Food> foods = foodRepository.findByGroupId(groupId);
+
+        List<FoodResponse.NewFood> foodList = foods.stream()
+                .map(food -> new FoodResponse.NewFood(
+                        food.getId(),
+                        food.getName(),
+                        food.getType(),
+                        food.getImageUrl(),
+                        food.getUnitOfMeasurementId(),
+                        food.getFoodCategoryId(),
+                        food.getUserId(),
+                        food.getGroupId(),
+                        food.getCreatedAt(),
+                        food.getUpdatedAt()
+                ))
+                .toList();
+
+        return FoodResponse.builder()
+                .resultCode("00194")
+                .resultMessage(new FoodResponse.ResultMessage(
+                        "Successfully retrieved foods by group",
+                        "Lấy danh sách thực phẩm theo nhóm thành công"
                 ))
                 .foods(foodList)
                 .build();

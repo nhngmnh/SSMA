@@ -38,6 +38,7 @@ public class FoodUpdateResponse {
         private String updatedAt;
         private Long FoodCategoryId;
         private Long UserId;
+        private Long groupId;
         private Long UnitOfMeasurementId;
     }
 }

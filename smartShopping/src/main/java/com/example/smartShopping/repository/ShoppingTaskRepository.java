@@ -12,14 +12,13 @@ import java.util.List;
 public interface ShoppingTaskRepository
         extends JpaRepository<ShoppingTask, Long> {
 
-    // ✅ Cách 1: Query tự sinh (đủ dùng)
+    // Query using the FK column directly since there's no relationship mapping
     List<ShoppingTask> findByShoppingListId(Long shoppingListId);
 
-    // ✅ Cách 2: JOIN FETCH (tránh LazyInitializationException)
+    // Fixed query using the FK column instead of non-existent relationship
     @Query("""
         SELECT t FROM ShoppingTask t
-        JOIN FETCH t.shoppingList
-        WHERE t.shoppingList.id = :listId
+        WHERE t.shoppingListId = :listId
     """)
     List<ShoppingTask> findTasksWithList(@Param("listId") Long listId);
 }

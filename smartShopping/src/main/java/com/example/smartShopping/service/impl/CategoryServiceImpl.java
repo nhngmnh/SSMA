@@ -1,8 +1,7 @@
 package com.example.smartShopping.service.impl;
 
 import com.example.smartShopping.dto.request.CategoryRequest;
-import com.example.smartShopping.dto.response.ApiResponse;
-import com.example.smartShopping.dto.response.CategoryResponse;
+import com.example.smartShopping.dto.response.*;
 import com.example.smartShopping.entity.Category;
 import com.example.smartShopping.repository.CategoryRepository;
 import com.example.smartShopping.service.CategoryService;
@@ -20,116 +19,159 @@ public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
 
     @Override
-    public ApiResponse<Category> createCategory(CategoryRequest request) {
-        if (categoryRepository.findByName(request.getName()).isPresent()) {
-            return ApiResponse.<Category>builder()
-                    .success(false)
-                    .code(409)
-                    .message("Category already exists")
-                    .data(null)
+    public CategoryCreateResponse createCategory(CategoryRequest request) {
+        try {
+            Category category = Category.builder()
+                    .name(request.getName())
+                    .build();
+
+            categoryRepository.save(category);
+
+            CategoryCreateResponse.CategoryDto dto = CategoryCreateResponse.CategoryDto.builder()
+                    .id(category.getId())
+                    .name(category.getName())
+                    .createdAt(category.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                    .updatedAt(category.getUpdatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                    .build();
+
+            return CategoryCreateResponse.builder()
+                    .resultCode("00134")
+                    .resultMessage(CategoryCreateResponse.ResultMessage.builder()
+                            .en("Category created successfully")
+                            .vn("Tạo category thành công")
+                            .build())
+                    .newCategory(dto)
+                    .build();
+
+        } catch (RuntimeException e) {
+            return CategoryCreateResponse.builder()
+                    .resultCode("1999")
+                    .resultMessage(CategoryCreateResponse.ResultMessage.builder()
+                            .en("System error: " + e.getMessage())
+                            .vn("Lỗi hệ thống: " + e.getMessage())
+                            .build())
                     .build();
         }
-
-        Category category = Category.builder()
-                .name(request.getName())
-                .build();
-
-        categoryRepository.save(category);
-
-        return ApiResponse.<Category>builder()
-                .success(true)
-                .code(201)
-                .message("Category created successfully")
-                .data(category)
-                .build();
     }
 
     @Override
-    public ApiResponse<List<Category>> getAllCategories() {
-        List<Category> categories = categoryRepository.findAll();
+    public CategoryResponse getAllCategories() {
+        try {
+            List<CategoryResponse.CategoryDto> categoryDtos = categoryRepository.findAll()
+                    .stream()
+                    .map(c -> CategoryResponse.CategoryDto.builder()
+                            .id(c.getId())
+                            .name(c.getName())
+                            .createdAt(c.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                            .updatedAt(c.getUpdatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                            .build())
+                    .collect(Collectors.toList());
 
-        return ApiResponse.<List<Category>>builder()
-                .success(true)
-                .code(200)
-                .message("Get categories successfully")
-                .data(categories)
-                .build();
+            return CategoryResponse.builder()
+                    .resultCode("00135")
+                    .resultMessage(CategoryResponse.ResultMessage.builder()
+                            .en("Get categories successfully")
+                            .vn("Lấy danh sách category thành công")
+                            .build())
+                    .categories(categoryDtos)
+                    .build();
+
+        } catch (RuntimeException e) {
+            return CategoryResponse.builder()
+                    .resultCode("1999")
+                    .resultMessage(CategoryResponse.ResultMessage.builder()
+                            .en("System error: " + e.getMessage())
+                            .vn("Lỗi hệ thống: " + e.getMessage())
+                            .build())
+                    .build();
+        }
     }
+
     @Override
-    public ApiResponse updateCategoryName(String oldName, String newName) {
-        Category category = categoryRepository.findByName(oldName)
-                .orElse(null);
+    public CategoryUpdateResponse updateCategoryName(String oldName, String newName) {
+        try {
+            Category category = categoryRepository.findByName(oldName)
+                    .orElseThrow(() -> new RuntimeException("Category not found"));
 
-        if (category == null) {
-            return ApiResponse.builder()
-                    .success(false)
-                    .code(404)
-                    .message("Category not found")
-                    .data(null)
+            category.setName(newName);
+            categoryRepository.save(category);
+
+            return CategoryUpdateResponse.builder()
+                    .resultCode("00141")
+                    .resultMessage(CategoryUpdateResponse.ResultMessage.builder()
+                            .en("Category updated successfully")
+                            .vn("Sửa đổi category thành công")
+                            .build())
+                    .build();
+
+        } catch (RuntimeException e) {
+            return CategoryUpdateResponse.builder()
+                    .resultCode("1999")
+                    .resultMessage(CategoryUpdateResponse.ResultMessage.builder()
+                            .en("System error: " + e.getMessage())
+                            .vn("Lỗi hệ thống: " + e.getMessage())
+                            .build())
                     .build();
         }
-
-        // Kiểm tra trùng newName
-        if (categoryRepository.findByName(newName).isPresent()) {
-            return ApiResponse.builder()
-                    .success(false)
-                    .code(409)
-                    .message("Category name already exists")
-                    .data(null)
-                    .build();
-        }
-
-        category.setName(newName);
-        categoryRepository.save(category);
-
-        return ApiResponse.builder()
-                .success(true)
-                .code(141)
-                .message("Sửa đổi category thành công")
-                .data(null)
-                .build();
     }
+
     @Override
-    public ApiResponse deleteCategoryByName(String name) {
-        Category category = categoryRepository.findByName(name)
-                .orElse(null);
+    public CategoryDeleteResponse deleteCategoryByName(String name) {
+        try {
+            Category category = categoryRepository.findByName(name)
+                    .orElseThrow(() -> new RuntimeException("Category not found"));
 
-        if (category == null) {
-            return ApiResponse.builder()
-                    .success(false)
-                    .code(404)
-                    .message("Category not found")
-                    .data(null)
+            categoryRepository.delete(category);
+
+            return CategoryDeleteResponse.builder()
+                    .resultCode("00146")
+                    .resultMessage(CategoryDeleteResponse.ResultMessage.builder()
+                            .en("Category deleted successfully")
+                            .vn("Xóa category thành công")
+                            .build())
+                    .build();
+
+        } catch (RuntimeException e) {
+            return CategoryDeleteResponse.builder()
+                    .resultCode("1999")
+                    .resultMessage(CategoryDeleteResponse.ResultMessage.builder()
+                            .en("System error: " + e.getMessage())
+                            .vn("Lỗi hệ thống: " + e.getMessage())
+                            .build())
                     .build();
         }
-
-        categoryRepository.delete(category);
-
-        return ApiResponse.builder()
-                .success(true)
-                .code(146)
-                .message("Xóa category thành công")
-                .data(null)
-                .build();
     }
+
     @Override
     public CategoryResponse getAllCategoriesFood() {
-        List<CategoryResponse.CategoryDto> categoryDtos = categoryRepository.findAll()
-                .stream()
-                .map(c -> CategoryResponse.CategoryDto.builder()
-                        .id(c.getId())
-                        .name(c.getName())
-                        .createdAt(c.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
-                        .updatedAt(c.getUpdatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
-                        .build())
-                .collect(Collectors.toList());
+        try {
+            List<CategoryResponse.CategoryDto> categoryDtos = categoryRepository.findAll()
+                    .stream()
+                    .map(c -> CategoryResponse.CategoryDto.builder()
+                            .id(c.getId())
+                            .name(c.getName())
+                            .createdAt(c.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                            .updatedAt(c.getUpdatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                            .build())
+                    .collect(Collectors.toList());
 
-        return CategoryResponse.builder()
-                .resultCode("00129")
-                .resultMessage(new CategoryResponse.ResultMessage(
-                        "Successfully retrieved categories", "Lấy các category thành công"
-                ))
-                .categories(categoryDtos)
-                .build();
+            return CategoryResponse.builder()
+                    .resultCode("00129")
+                    .resultMessage(CategoryResponse.ResultMessage.builder()
+                            .en("Successfully retrieved categories")
+                            .vn("Lấy các category thành công")
+                            .build())
+                    .categories(categoryDtos)
+                    .build();
+
+        } catch (RuntimeException e) {
+            return CategoryResponse.builder()
+                    .resultCode("1999")
+                    .resultMessage(CategoryResponse.ResultMessage.builder()
+                            .en("System error: " + e.getMessage())
+                            .vn("Lỗi hệ thống: " + e.getMessage())
+                            .build())
+                    .build();
+        }
     }
 }

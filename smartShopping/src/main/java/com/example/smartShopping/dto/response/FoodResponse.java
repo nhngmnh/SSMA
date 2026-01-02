@@ -34,16 +34,17 @@ public class FoodResponse {
         private Long UnitOfMeasurementId;
         private Long FoodCategoryId;
         private Long UserId;
+        private Long groupId;
         private String createdAt;
         private String updatedAt;
 
         private CategoryResponse.CategoryDto FoodCategory;
         private UnitResponse.UnitDto unitOfMeasurement;
 
-        // Nếu Lombok không tự generate constructor 9 params, thêm thủ công:
+        // Nếu Lombok không tự generate constructor, thêm thủ công:
         public NewFood(Long id, String name, String type, String imageUrl,
                        Long UnitOfMeasurementId, Long FoodCategoryId, Long UserId,
-                       String createdAt, String updatedAt) {
+                       Long groupId, String createdAt, String updatedAt) {
             this.id = id;
             this.name = name;
             this.type = type;
@@ -51,6 +52,7 @@ public class FoodResponse {
             this.UnitOfMeasurementId = UnitOfMeasurementId;
             this.FoodCategoryId = FoodCategoryId;
             this.UserId = UserId;
+            this.groupId = groupId;
             this.createdAt = createdAt;
             this.updatedAt = updatedAt;
         }
@@ -68,6 +70,7 @@ public class FoodResponse {
                         .UnitOfMeasurementId(food.getUnitOfMeasurementId())
                         .FoodCategoryId(food.getFoodCategoryId())
                         .UserId(food.getUserId())
+                        .groupId(food.getGroupId())
                         .createdAt(food.getCreatedAt())
                         .updatedAt(food.getUpdatedAt())
                         .build())
@@ -87,9 +90,10 @@ public class FoodResponse {
                 .imageUrl(food.getImageUrl())
                 .FoodCategoryId(food.getFoodCategoryId())
                 .UserId(food.getUserId())
+                .groupId(food.getGroupId())
                 .UnitOfMeasurementId(food.getUnitOfMeasurementId())
-                .FoodCategory(CategoryResponse.toDto(food.getFoodCategory())) // map 1 object
-                .unitOfMeasurement(UnitResponse.toDto(food.getUnitOfMeasurement())) // map 1 object
+                // .FoodCategory(CategoryResponse.toDto(food.getFoodCategory())) // Food entity doesn't have these relationships
+                // .unitOfMeasurement(UnitResponse.toDto(food.getUnitOfMeasurement())) // Only IDs are stored
                 .createdAt(food.getCreatedAt())
                 .updatedAt(food.getUpdatedAt())
                 .build();

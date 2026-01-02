@@ -49,12 +49,11 @@ public class User {
     private LocalDateTime refreshExpiresAt;
     private Boolean refreshRevoked = false;
 
-    // 🆕 Các trường mở rộng
     private String phone;
     private String address;
     private String avatarUrl;
 
-    // ✅ 🆕 Thêm đúng trường notificationToken
+    
     @Column(name = "notification_token")
     private String notificationToken;
 

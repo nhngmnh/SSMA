@@ -68,6 +68,15 @@ public class JwtTokenProvider {
     public String getSecret() {
         return jwtSecret;
     }
+    
+    public Long getAccessExpiration() {
+        return jwtExpiration;
+    }
+    
+    public Long getRefreshExpiration() {
+        return refreshExpiration;
+    }
+    
     public String generateVerificationToken(String email, String verificationCode) {
         return Jwts.builder()
                 .setSubject(email)                        // lưu email

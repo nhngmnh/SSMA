@@ -1,12 +1,12 @@
 package com.example.smartShopping.service;
 
 import com.example.smartShopping.dto.request.UnitRequest;
-import com.example.smartShopping.dto.response.ApiResponse;
+import com.example.smartShopping.dto.response.*;
 
 public interface UnitService {
-    ApiResponse createUnit(UnitRequest request);
-    ApiResponse getAllUnits(String unitName); // unitName có thể null
-    ApiResponse updateUnitName(String oldName, String newName);
-    ApiResponse deleteUnitByName(String unitName);
-    ApiResponse getAllUnitsFood(String unitName);
+    UnitCreateResponse createUnit(UnitRequest request);
+    UnitResponse getAllUnits(String unitName);
+    UnitUpdateResponse updateUnitName(String oldName, String newName);
+    UnitDeleteResponse deleteUnitByName(String unitName);
+    UnitResponse getAllUnitsFood(String unitName);
 }

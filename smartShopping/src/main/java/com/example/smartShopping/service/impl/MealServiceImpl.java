@@ -4,6 +4,8 @@ import com.example.smartShopping.dto.request.DeleteMealRequest;
 import com.example.smartShopping.dto.request.MealRequest;
 import com.example.smartShopping.dto.request.UpdateMealRequest;
 import com.example.smartShopping.dto.response.MealDeleteResponse;
+import com.example.smartShopping.dto.response.MealDetailResponse;
+import com.example.smartShopping.dto.response.MealGetAllResponse;
 import com.example.smartShopping.dto.response.MealResponse;
 import com.example.smartShopping.dto.response.MealUpdateResponse;
 import com.example.smartShopping.entity.Meal;
@@ -14,6 +16,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -73,6 +77,58 @@ public class MealServiceImpl implements MealService {
         }
     }
     @Override
+    public MealUpdateResponse updateMeal(UpdateMealRequest request) {
+        try {
+            Meal meal = mealRepository.findById(request.getPlanId())
+                    .orElseThrow(() -> new RuntimeException("Meal plan not found with id: " + request.getPlanId()));
+
+            if (request.getName() != null) {
+                meal.setName(request.getName());
+            }
+            if (request.getTimestamp() != null) {
+                meal.setTimestamp(request.getTimestamp());
+            }
+            if (request.getStatus() != null) {
+                meal.setStatus(request.getStatus());
+            }
+            if (request.getFoodId() != null) {
+                meal.setFoodId(request.getFoodId());
+            }
+
+            meal.setUpdatedAt(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+            Meal updatedMeal = mealRepository.save(meal);
+
+            MealUpdateResponse.UpdatedPlan mealDto = MealUpdateResponse.UpdatedPlan.builder()
+                    .id(updatedMeal.getId())
+                    .name(updatedMeal.getName())
+                    .timestamp(updatedMeal.getTimestamp())
+                    .status(updatedMeal.getStatus())
+                    .FoodId(updatedMeal.getFoodId())
+                    .UserId(updatedMeal.getUserId())
+                    .updatedAt(updatedMeal.getUpdatedAt())
+                    .createdAt(updatedMeal.getCreatedAt())
+                    .build();
+
+            return MealUpdateResponse.builder()
+                    .resultCode("00326")
+                    .resultMessage(MealUpdateResponse.ResultMessage.builder()
+                            .en("Meal plan updated successfully")
+                            .vn("Cập nhật kế hoạch bữa ăn thành công")
+                            .build())
+                    .updatedPlan(mealDto)
+                    .build();
+
+        } catch (RuntimeException e) {
+            return MealUpdateResponse.builder()
+                    .resultCode("1999")
+                    .resultMessage(MealUpdateResponse.ResultMessage.builder()
+                            .en("System error: " + e.getMessage())
+                            .vn("Lỗi hệ thống: " + e.getMessage())
+                            .build())
+                    .build();
+        }
+    }
+    @Override
     public MealDeleteResponse deleteMeal(DeleteMealRequest request) {
         try {
             Meal meal = mealRepository.findById(request.getPlanId())
@@ -97,4 +153,88 @@ public class MealServiceImpl implements MealService {
                             .build())
                     .build();
         }
-    }}
+    }
+
+    @Override
+    public MealGetAllResponse getAllMeals() {
+        try {
+            List<Meal> meals = mealRepository.findAll();
+
+            List<MealGetAllResponse.MealDto> mealDtos = meals.stream()
+                    .map(meal -> MealGetAllResponse.MealDto.builder()
+                            .id(meal.getId())
+                            .name(meal.getName())
+                            .timestamp(meal.getTimestamp())
+                            .status(meal.getStatus())
+                            .foodId(meal.getFoodId())
+                            .userId(meal.getUserId())
+                            .updatedAt(meal.getUpdatedAt())
+                            .createdAt(meal.getCreatedAt())
+                            .build())
+                    .collect(Collectors.toList());
+
+            return MealGetAllResponse.builder()
+                    .resultCode("00334")
+                    .resultMessage(MealGetAllResponse.ResultMessage.builder()
+                            .en("Successfully retrieved meal plans")
+                            .vn("Lấy danh sách kế hoạch bữa ăn thành công")
+                            .build())
+                    .meals(mealDtos)
+                    .build();
+
+        } catch (Exception e) {
+            return MealGetAllResponse.builder()
+                    .resultCode("1999")
+                    .resultMessage(MealGetAllResponse.ResultMessage.builder()
+                            .en("System error: " + e.getMessage())
+                            .vn("Lỗi hệ thống: " + e.getMessage())
+                            .build())
+                    .build();
+        }
+    }
+
+    @Override
+    public MealDetailResponse getMealById(Long id) {
+        try {
+            Meal meal = mealRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Meal plan not found with id: " + id));
+
+            MealDetailResponse.MealDto mealDto = MealDetailResponse.MealDto.builder()
+                    .id(meal.getId())
+                    .name(meal.getName())
+                    .timestamp(meal.getTimestamp())
+                    .status(meal.getStatus())
+                    .foodId(meal.getFoodId())
+                    .userId(meal.getUserId())
+                    .updatedAt(meal.getUpdatedAt())
+                    .createdAt(meal.getCreatedAt())
+                    .build();
+
+            return MealDetailResponse.builder()
+                    .resultCode("00336")
+                    .resultMessage(MealDetailResponse.ResultMessage.builder()
+                            .en("Successfully retrieved meal plan details")
+                            .vn("Lấy chi tiết kế hoạch bữa ăn thành công")
+                            .build())
+                    .meal(mealDto)
+                    .build();
+
+        } catch (RuntimeException e) {
+            return MealDetailResponse.builder()
+                    .resultCode("1404")
+                    .resultMessage(MealDetailResponse.ResultMessage.builder()
+                            .en("Not found: " + e.getMessage())
+                            .vn("Không tìm thấy: " + e.getMessage())
+                            .build())
+                    .build();
+        } catch (Exception e) {
+            return MealDetailResponse.builder()
+                    .resultCode("1999")
+                    .resultMessage(MealDetailResponse.ResultMessage.builder()
+                            .en("System error: " + e.getMessage())
+                            .vn("Lỗi hệ thống: " + e.getMessage())
+                            .build())
+                    .build();
+        }
+    }
+}

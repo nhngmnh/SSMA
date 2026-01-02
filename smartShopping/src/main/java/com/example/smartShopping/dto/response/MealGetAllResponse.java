@@ -1,0 +1,34 @@
+package com.example.smartShopping.dto.response;
+
+import lombok.*;
+
+import java.util.List;
+
+@Getter @Setter
+@AllArgsConstructor @NoArgsConstructor @Builder
+public class MealGetAllResponse {
+    
+    private ResultMessage resultMessage;
+    private String resultCode;
+    private List<MealDto> meals;
+
+    @Getter @Setter
+    @AllArgsConstructor @NoArgsConstructor @Builder
+    public static class ResultMessage {
+        private String en;
+        private String vn;
+    }
+
+    @Getter @Setter
+    @AllArgsConstructor @NoArgsConstructor @Builder
+    public static class MealDto {
+        private Long id;
+        private String name;
+        private String timestamp;
+        private String status;
+        private Long foodId;
+        private Long userId;
+        private String updatedAt;
+        private String createdAt;
+    }
+}

@@ -4,6 +4,9 @@ package com.example.smartShopping.controller;
 
 import com.example.smartShopping.dto.request.CategoryRequest;
 import com.example.smartShopping.dto.response.ApiResponse;
+import com.example.smartShopping.dto.response.CategoryCreateResponse;
+import com.example.smartShopping.dto.response.CategoryUpdateResponse;
+import com.example.smartShopping.dto.response.CategoryDeleteResponse;
 import com.example.smartShopping.entity.Category;
 import com.example.smartShopping.service.CategoryService;
 import jakarta.validation.Valid;
@@ -29,8 +32,7 @@ public class CategoryController {
         try {
             CategoryRequest request = new CategoryRequest();
             request.setName(name);
-            ApiResponse response = categoryService.createCategory(request);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(categoryService.createCategory(request));
         } catch (Exception e) {
             Map<String, Object> errorResponse = new LinkedHashMap<>();
             Map<String, String> resultMessage = new LinkedHashMap<>();
@@ -66,8 +68,7 @@ public class CategoryController {
             @RequestParam String oldName,
             @RequestParam String newName) {
         try {
-            ApiResponse response = categoryService.updateCategoryName(oldName, newName);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(categoryService.updateCategoryName(oldName, newName));
         } catch (Exception e) {
             Map<String, Object> errorResponse = new LinkedHashMap<>();
             Map<String, String> resultMessage = new LinkedHashMap<>();
@@ -85,8 +86,7 @@ public class CategoryController {
     @DeleteMapping
     public Object deleteCategory(@RequestParam String name) {
         try {
-            ApiResponse response = categoryService.deleteCategoryByName(name);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(categoryService.deleteCategoryByName(name));
         } catch (Exception e) {
             Map<String, Object> errorResponse = new LinkedHashMap<>();
             Map<String, String> resultMessage = new LinkedHashMap<>();
