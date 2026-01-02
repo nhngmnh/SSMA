@@ -25,7 +25,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/**").permitAll() // Allow all /api endpoints without authentication
-                        .requestMatchers("/user/logout/**").permitAll() // Cho phép logout không cần auth
+                        .requestMatchers("/user/**").permitAll() // Allow all /user endpoints (login, register, etc.)
                         .requestMatchers("/test/**").permitAll() // Cho phép test endpoints
                         .anyRequest().authenticated()
                 )
